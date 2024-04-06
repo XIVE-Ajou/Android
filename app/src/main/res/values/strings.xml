@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">XIVE</string>
+    <string name="onboarding1_text1">스마트 티켓을 태깅해보세요</string>
+    <string name="onboarding1_text2">스마트 티켓은 NFC 태깅이 가능한\n카이브만의 서비스예요</string>
+    <string name="onboarding2_text1">스캔 한 번에 모든 콘텐츠를</string>
+    <string name="onboarding2_text2">카이브만의 독점 콘텐츠를 확인해보세요</string>
+    <string name="onboarding3_text1">문화생활을 더 즐겁게</string>
+    <string name="onboarding3_text2">내 손 안의 문화생활 플랫폼, 카이브와 함께해요!</string>
+
 </resources>
