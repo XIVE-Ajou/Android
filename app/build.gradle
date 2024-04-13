@@ -3,6 +3,12 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+Properties properties = new Properties()
+properties.load(project.rootProject.file('apikey.properties').newDataInputStream())
+def client_id = properties.getProperty('client_id')
+def redirect_uri = properties.getProperty('redirect_uri')
+def base_url = properties.getProperty('base_url')
+
 android {
     namespace 'com.ajou.xive'
     compileSdk 33
@@ -15,6 +21,10 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField "String", "CLIENT_ID", client_id
+        buildConfigField "String", "REDIRECT_URI", redirect_uri
+        buildConfigField "String", "BASE_URL", base_url
     }
 
     buildTypes {

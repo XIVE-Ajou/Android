@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import com.ajou.xive.auth.SignUpActivity
 import com.ajou.xive.databinding.ActivitySplashBinding
+import com.ajou.xive.onboarding.view.OnBoardingActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -31,16 +32,17 @@ class SplashActivity : AppCompatActivity() {
         gifDrawable.setSpeed(0.8f)
 
         Handler().postDelayed({
-            val intent = Intent(this, SignUpActivity::class.java)
-            startActivity(intent)
+            CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
+                if (accessToken != null && refreshToken != null){
+                    val intent = Intent(this@SplashActivity, OnBoardingActivity::class.java)
+                    startActivity(intent)
+                }else{
+                    val intent = Intent(this@SplashActivity, SignUpActivity::class.java)
+                    startActivity(intent)
+                }
+                // TODO 서버와 연결 후에는 token 여부와 firstFlag로 식별하기
+            }
         },2000)
-
-        CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
-//            if (accessToken == null || refreshToken == null){
-//
-//            }
-            // TODO 서버와 연결 후에는 token 여부와 firstFlag로 식별하기
-        }
     }
 
     val exceptionHandler = CoroutineExceptionHandler { _, exception ->
