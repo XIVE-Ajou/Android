@@ -88,5 +88,10 @@ dependencies {
     // viewpager2 indicator
     implementation("com.tbuonomo:dotsindicator:4.3")
 
+    // viewpager indicator customizing
+    implementation "ru.tinkoff.scrollingpagerindicator:scrollingpagerindicator:1.2.3"
+
+    // imageview blur
+    implementation 'jp.wasabeef:glide-transformations:4.3.0'
 
 }

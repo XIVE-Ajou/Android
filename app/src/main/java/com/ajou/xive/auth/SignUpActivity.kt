@@ -12,6 +12,7 @@ import com.ajou.xive.databinding.ActivitySignUpBinding
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.UserService
 import com.ajou.xive.onboarding.view.OnBoardingActivity
+import com.ajou.xive.setOnSingleClickListener
 import kotlinx.coroutines.*
 
 class SignUpActivity : AppCompatActivity() {
@@ -30,13 +31,13 @@ class SignUpActivity : AppCompatActivity() {
         }
 
         binding.nonMemBtn.paintFlags = Paint.UNDERLINE_TEXT_FLAG
-        binding.nonMemBtn.setOnClickListener {
+        binding.nonMemBtn.setOnSingleClickListener {
             CoroutineScope(Dispatchers.IO).launch(exceptionHandler){
                 val loginDeferred = async { userService.nonLogin() }
                 val loginResponse = loginDeferred.await()
                 if (loginResponse.isSuccessful){
                     val tokenBody = loginResponse.body()
-                    Log.d("nonmember token",tokenBody.toString())
+                    Log.d("nonmember token",tokenBody?.accessToken.toString())
                     dataStore.saveAccessToken(tokenBody!!.accessToken)
                     dataStore.saveRefreshToken(tokenBody!!.refreshToken)
                     Log.d("nonmember login success",tokenBody.toString())

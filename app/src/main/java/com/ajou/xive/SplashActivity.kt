@@ -8,6 +8,7 @@ import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import com.ajou.xive.auth.SignUpActivity
 import com.ajou.xive.databinding.ActivitySplashBinding
+import com.ajou.xive.home.HomeActivity
 import com.ajou.xive.onboarding.view.OnBoardingActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -34,7 +35,7 @@ class SplashActivity : AppCompatActivity() {
         Handler().postDelayed({
             CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
                 if (accessToken != null && refreshToken != null){
-                    val intent = Intent(this@SplashActivity, OnBoardingActivity::class.java)
+                    val intent = Intent(this@SplashActivity, HomeActivity::class.java)
                     startActivity(intent)
                 }else{
                     val intent = Intent(this@SplashActivity, SignUpActivity::class.java)
