@@ -2,26 +2,45 @@ package com.ajou.xive.home
 
 import android.R.id.text1
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.view.marginStart
 import androidx.recyclerview.widget.RecyclerView
+import com.ajou.xive.DataSelection
 import com.ajou.xive.R
 import com.ajou.xive.databinding.ItemTicketBinding
+import com.ajou.xive.home.model.Ticket
 import com.bumptech.glide.Glide
 
 
-class TicketViewPagerAdapter(val context : Context, val list: List<String>):RecyclerView.Adapter<TicketViewPagerAdapter.ViewHolder>() {
+class TicketViewPagerAdapter(val context : Context, var list: List<Ticket>, val link : DataSelection):RecyclerView.Adapter<TicketViewPagerAdapter.ViewHolder>() {
 
     inner class ViewHolder(val binding: ItemTicketBinding): RecyclerView.ViewHolder(binding.root){
-        fun bind(url:String) {
-            // TODO glide로 이미지 삽입
+        fun bind(data:Ticket) {
             Glide.with(context)
-                .load(context.resources.getDrawable(R.drawable.ticket_ex))
+                .load(data.eventImageUrl)
                 .centerCrop()
                 .into(binding.img)
-            // TODO 클릭 시 세부 화면 이동(웹뷰 예정, 관련 데이터만 전달하면 될듯)
+
+//            Glide.with(context)
+//                .load(context.resources.getDrawable(R.drawable.ticket_ex))
+//                .into(binding.img)
+            binding.ticket.setOnClickListener {
+                link.getSelectedTicketUrl(data.eventWebUrl)
+
+            }
+
+            binding.ticket.setOnLongClickListener {
+                link.getSelectedTicketId(data.ticketId,bindingAdapterPosition)
+                return@setOnLongClickListener(true)
+
+            }
+//            binding.ticket.setOnClickListener {
+//                link.getSelectedTicketUrl(data.eventWebUrl)
+//            }
+
         }
     }
 
@@ -40,4 +59,20 @@ class TicketViewPagerAdapter(val context : Context, val list: List<String>):Recy
     override fun getItemCount(): Int {
         return list.size
     }
+
+    fun updateList(newList : List<Ticket>){
+        list = newList
+        this.notifyDataSetChanged()
+    }
+
+    fun addToList(newList: List<Ticket>){
+        list = newList
+        this.notifyItemInserted(list.size-1)
+    }
+
+    fun removeAtList(newList: List<Ticket>, position: Int){
+        list = newList
+        this.notifyItemRemoved(position)
+    }
+
 }

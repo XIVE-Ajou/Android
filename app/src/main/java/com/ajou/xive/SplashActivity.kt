@@ -12,16 +12,15 @@ import com.ajou.xive.home.HomeActivity
 import com.ajou.xive.onboarding.view.OnBoardingActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import java.net.ConnectException
 
 class SplashActivity : AppCompatActivity() {
     private var _binding: ActivitySplashBinding? = null
     private val binding get() = _binding!!
     private var accessToken : String ?= null
     private var refreshToken : String ?= null
+    private val dataStore = UserDataStore()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,20 +33,25 @@ class SplashActivity : AppCompatActivity() {
 
         Handler().postDelayed({
             CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
-                if (accessToken != null && refreshToken != null){
-                    val intent = Intent(this@SplashActivity, HomeActivity::class.java)
-                    startActivity(intent)
-                }else{
-                    val intent = Intent(this@SplashActivity, SignUpActivity::class.java)
-                    startActivity(intent)
-                }
-                // TODO 서버와 연결 후에는 token 여부와 firstFlag로 식별하기
+                    accessToken = dataStore.getAccessToken()
+                    refreshToken = dataStore.getRefreshToken()
+
+                    withContext(Dispatchers.Main){
+                        if (accessToken != null && refreshToken != null){
+                            val intent = Intent(this@SplashActivity, HomeActivity::class.java)
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+                            startActivity(intent)
+                        }else{
+                            val intent = Intent(this@SplashActivity, SignUpActivity::class.java)
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+                            startActivity(intent)
+                        }
+                    }
             }
         },2000)
     }
 
     val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-        Log.d("exceptionHandler", exception.message.toString())
         showErrorDialog()
     }
     private fun showErrorDialog() {
@@ -63,5 +67,14 @@ class SplashActivity : AppCompatActivity() {
                 show()
             }
         }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        finish()
+    }
+    override fun onDestroy() {
+        super.onDestroy()
+        finish()
     }
 }

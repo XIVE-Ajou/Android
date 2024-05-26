@@ -1,51 +1,172 @@
 package com.ajou.xive.home
 
+import android.app.PendingIntent
+import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Rect
-import android.os.Bundle
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
+import android.nfc.NdefMessage
+import android.nfc.NdefRecord
+import android.nfc.NfcAdapter
+import android.os.*
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
 import android.util.Log
 import android.view.View
+import android.view.animation.Animation
+import android.view.animation.AnimationUtils
+import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.ajou.xive.R
-import com.ajou.xive.UserDataStore
+import com.ajou.xive.*
 import com.ajou.xive.databinding.ActivityHomeBinding
+import com.ajou.xive.home.model.Ticket
+import com.ajou.xive.network.NFCRetrofitInstance
+import com.ajou.xive.network.RetrofitInstance
+import com.ajou.xive.network.api.NFCService
+import com.ajou.xive.network.api.TicketService
+import com.ajou.xive.network.model.NFCData
+import com.ajou.xive.setting.SettingActivity
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.MultiTransformation
-import com.bumptech.glide.load.resource.bitmap.CenterCrop
-import com.bumptech.glide.load.resource.bitmap.CircleCrop
 import com.bumptech.glide.load.resource.bitmap.FitCenter
-import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
+import com.google.gson.JsonObject
 import jp.wasabeef.glide.transformations.BlurTransformation
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody
+import java.util.*
 
-class HomeActivity : AppCompatActivity() {
+class HomeActivity : AppCompatActivity(), DataSelection {
     private var _binding : ActivityHomeBinding? = null
     private val binding get() = _binding!!
     private val dataStore = UserDataStore()
+    private val viewModel : TicketViewModel by viewModels()
+    private val ticketService = RetrofitInstance.getInstance().create(TicketService::class.java)
+    private val nfcService = NFCRetrofitInstance.getInstance().create(NFCService::class.java)
+    private lateinit var accessToken : String
+    private lateinit var refreshToken : String
+    var state = 0
+
+    var nfcAdapter: NfcAdapter? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val test = dataStore.getAccessToken()
-            Log.d("nonmember token test",test.toString())
+        val handler = Handler(Looper.myLooper()!!)
+        val anim: Animation = AnimationUtils.loadAnimation(this, R.anim.nfc_btn_effect)
+
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
+
+        val thread = object : Thread() {
+            override fun run() {
+                super.run()
+                // 5초 이하의 짧은 작업을 굉장히 많이 반복하고 싶을때만 사용
+                binding.nfcBtn.startAnimation(anim)
+                handler.postDelayed(this, 1500) // 100 쉬고 동작 -> 100 사이에 화면 처리
+
+            }
         }
-        val tmpList = listOf<String>("ex1","ex2","ex3","ex4")
-        val adapter = TicketViewPagerAdapter(this,tmpList)
+
+
+        if (nfcAdapter == null) {
+            // Stop here, we definitely need NFC
+            Toast.makeText(this,"NFC 사용이 불가능한 기종입니다",Toast.LENGTH_SHORT)
+        }
+
+        binding.nfcBtn.setOnClickListener {
+            val dialog = NfcTaggingBottomSheetFragment()
+            dialog.show(supportFragmentManager,dialog.tag)
+        }
+
+        binding.setting.setOnClickListener {
+            val intent = Intent(this, SettingActivity::class.java)
+            startActivity(intent)
+        }
+        val adapter = TicketViewPagerAdapter(this, emptyList(),this)
+
+        CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
+            accessToken = dataStore.getAccessToken().toString()
+            refreshToken = dataStore.getRefreshToken().toString()
+            val ticketListDeferred = async { ticketService.getAllTickets(accessToken, refreshToken) }
+            val ticketListResponse = ticketListDeferred.await()
+            if (ticketListResponse.isSuccessful){
+                viewModel.setType("update")
+                viewModel.setTicketList(ticketListResponse.body()!!.data)
+                withContext(Dispatchers.Main){
+                    if (ticketListResponse.body()!!.data.isEmpty()){
+                        binding.nullLogo.visibility = View.VISIBLE
+                        binding.nullText1.visibility = View.VISIBLE
+                        binding.nullText3.visibility = View.VISIBLE
+                        state = 0
+                        animatedBtn(handler,thread, anim)
+                    }else{
+                        binding.bgImg.visibility = View.VISIBLE
+                        binding.ticketVP.visibility = View.VISIBLE
+                        binding.indicator.visibility = View.VISIBLE
+                        state = 1
+                        animatedBtn(handler,thread, anim) // 애니메이션 멈추기
+                    }
+                }
+            }
+        }
+
+        viewModel.ticketList.observe(this, androidx.lifecycle.Observer {
+            when(viewModel.type.value){
+                "insert" -> {
+                    adapter.addToList(viewModel.ticketList.value!!)
+                    if (viewModel.ticketList.value!!.size != 0){
+                        binding.indicator.visibility = View.VISIBLE
+                        binding.ticketVP.visibility = View.VISIBLE
+                        binding.nullLogo.visibility = View.GONE
+                        binding.nullText1.visibility = View.GONE
+                        binding.nullText3.visibility = View.GONE
+                    }
+                }
+                "update" -> {
+                    adapter.updateList(viewModel.ticketList.value!!)
+                }
+                else -> {
+                    adapter.removeAtList(viewModel.ticketList.value!!,viewModel.type.value!!.toInt())
+                    if (viewModel.ticketList.value!!.size == 0){
+                        binding.indicator.visibility = View.INVISIBLE
+                        binding.nullLogo.visibility = View.VISIBLE
+                        binding.nullText1.visibility = View.VISIBLE
+                        binding.nullText3.visibility = View.VISIBLE
+                    }
+                }
+            }
+        })
+
+        val text = "Add+\nSmart ticket"
+        val spannable = SpannableStringBuilder(text)
+
+        spannable.setSpan(ForegroundColorSpan(ContextCompat.getColor(this,R.color.primary)), 0,4, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+        // TextView에 Spannable 문자열 설정
+        binding.nullText1.text = spannable
 
         binding.ticketVP.adapter = adapter
         binding.ticketVP.orientation = ViewPager2.ORIENTATION_HORIZONTAL
 
         binding.indicator.attachToPager(binding.ticketVP)
 
+        binding.calendar.setOnClickListener {
+            val intent = Intent(this, CalendarActivity::class.java)
+            startActivity(intent)
+        }
         binding.ticketVP.offscreenPageLimit = 4
         // item_view 간의 양 옆 여백을 상쇄할 값
+
         val offsetBetweenPages = resources.getDimensionPixelOffset(R.dimen.offsetBetweenPages).toFloat()
 
         binding.ticketVP.addItemDecoration(object: RecyclerView.ItemDecoration() {
@@ -54,8 +175,9 @@ class HomeActivity : AppCompatActivity() {
                 outRect.left = offsetBetweenPages.toInt()
             }
         })
+
         binding.ticketVP.setPageTransformer { page, position ->
-            val myOffset = position * -(6*offsetBetweenPages)
+            val myOffset = position * -(5 * offsetBetweenPages)
             if (position < -1) {
                 page.translationX = -myOffset
             }
@@ -75,20 +197,152 @@ class HomeActivity : AppCompatActivity() {
             FitCenter(),
             BlurTransformation(25,3)
         )
-        Glide.with(this)
-            .load(this.getDrawable(R.drawable.ticket_ex))
-            .apply(multiOptions)
-            .into(binding.bgImg)
-//        binding.ticketVP.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback(){
-//            override fun onPageSelected(position: Int) {
-//                super.onPageSelected(position)
-//                Glide.with(this@HomeActivity)
-//                    .load(resources.getDrawable(R.drawable.genreballad))
-//                    .thumbnail(Glide.with(this@HomeActivity).load(resources.getDrawable(R.drawable.genreballad)).override(100, 100)) // 추후에 깜빡임 심할 시에 넣기
-//                    .apply(multiOptions)
-//                    .into(binding.bgImg)
-//            }
-//        })
+
+        binding.ticketVP.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback(){
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                Glide.with(this@HomeActivity)
+                    .asBitmap()
+                    .load(viewModel.ticketList.value?.get(position)?.eventImageUrl)
+                    .apply(multiOptions)
+                    .into(object : CustomTarget<Bitmap>(2, 2) {
+
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?
+                    ) {
+                        binding.bgImg.setImageDrawable(
+                            BitmapDrawable(
+                                binding.root.context.resources,
+                                resource
+                            )
+                        )
+                    }
+
+                    override fun onLoadCleared(placeholder: Drawable?) {
+                        binding.bgImg.setImageDrawable(null)
+                    }
+                }
+                )
+            }
+        })
     }
-     // https://blog.gangnamunni.com/post/viewpager2/
+
+    override fun onResume() {
+        super.onResume()
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0, Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+        )
+        nfcAdapter?.enableForegroundDispatch(this, pendingIntent, null, null)
+
+    }
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+
+        if (intent?.action == NfcAdapter.ACTION_NDEF_DISCOVERED) {
+            val messages = intent.getParcelableArrayExtra(NfcAdapter.EXTRA_NDEF_MESSAGES)
+
+            for (i in messages!!.indices) getNdefMsg(messages[i] as NdefMessage)
+        }
+    }
+    override fun onPause() {
+        super.onPause()
+        if (nfcAdapter != null) nfcAdapter?.disableForegroundDispatch(this)
+    }
+    private fun getNdefMsg(mMessage: NdefMessage) {
+        val recs = mMessage.records
+        for (i in recs.indices) {
+            val record = recs[i]
+            if (Arrays.equals(record.type, NdefRecord.RTD_TEXT)){
+                val url = BuildConfig.BASE_NFC_URL+byteArrayToStringWithNDEF(record.payload)
+//                getDecryptionTicket(url)
+            } else if (Arrays.equals(record.type, NdefRecord.RTD_URI)) {
+                val splitUrl = "?nfc="
+                val originUrl = record.toUri().toString()
+                val url = originUrl.replace(splitUrl,"")
+                getDecryptionTicket(url)
+            }
+        }
+    }
+
+    fun byteArrayToStringWithNDEF(byteArray: ByteArray): String {
+        if (byteArray.isEmpty()) {
+            return ""
+        }
+
+        // 첫 번째 바이트는 상태 바이트
+        val statusByte = byteArray[0].toInt()
+
+        // 상태 바이트의 하위 5비트는 언어 코드의 길이를 나타냄
+        val languageCodeLength = statusByte and 0x3F
+
+        // 실제 텍스트 데이터는 언어 코드 다음에 위치
+        return String(byteArray, languageCodeLength + 1, byteArray.size - languageCodeLength - 1, Charsets.UTF_8)
+    }
+
+    private fun getDecryptionTicket(url:String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val jsonObject = JsonObject().apply {
+                addProperty("url", url)
+            }
+            val requestBody = RequestBody.create(
+                "application/json".toMediaTypeOrNull(),
+                jsonObject.toString()
+            )
+            val nfcDeferred = async { nfcService.postNFCTicket(requestBody) }
+            val nfcResponse = nfcDeferred.await()
+            if (nfcResponse.isSuccessful) {
+                val body = nfcResponse.body()
+                val data = NFCData(body!!.eventId.toInt(),body.nfcId.toInt(),body.seatNumber)
+                val postTicketDeferred = async { ticketService.postTicket(accessToken, refreshToken,data) }
+                val postTicketResponse = postTicketDeferred.await()
+                if (postTicketResponse.isSuccessful) {
+                    val list = viewModel.ticketList.value
+                    list!!.add(postTicketResponse.body()!!)
+                    viewModel.setType("insert")
+                    viewModel.setTicketList(list)
+                }else{
+                    Log.d("postTicketResponse faill",postTicketResponse.errorBody()?.string().toString())
+                }
+            }else{
+                Log.d("nfcResponse fail",nfcResponse.errorBody()?.string().toString())
+            }
+        }
+    }
+
+    override fun getSelectedTicketId(id: Int,position:Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val deleteDeferred = async { ticketService.deleteTicket(accessToken,refreshToken,id.toString()) }
+            val deleteResponse = deleteDeferred.await()
+            if (deleteResponse.isSuccessful){
+                viewModel.setType(position.toString())
+                val list = viewModel.ticketList.value
+                list!!.removeAt(position)
+                viewModel.setTicketList(list)
+            }else{
+                Log.d("deleteResponse fail",deleteResponse.errorBody()?.string().toString())
+            }
+        }
+    }
+
+    override fun getSelectedTicketUrl(url: String) {
+        val intent = Intent(this, WebviewActivity::class.java)
+        intent.putExtra("url",url)
+        startActivity(intent)
+    }
+
+    private fun animatedBtn(handler: Handler, thread: Thread, anim: Animation){
+        binding.nfcBtn.startAnimation(anim)
+
+        if (state == 1){
+            handler.removeCallbacks(thread)
+        }else{
+            handler.postDelayed(thread, 1500)
+        }
+    }
+
+    val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+        val intent = Intent(this, NetworkErrorActivity::class.java)
+        startActivity(intent)
+    }
 }

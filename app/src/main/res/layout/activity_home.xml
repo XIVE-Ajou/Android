@@ -27,87 +27,99 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/notiBtn"
+        android:id="@+id/setting"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="16dp"
-        android:src="@drawable/home_noti"
+        android:src="@drawable/home_setting"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
-        android:id="@+id/imageView4"
+        android:id="@+id/calendar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginEnd="24dp"
-        android:src="@drawable/home_profile"
-        app:layout_constraintBottom_toBottomOf="@+id/notiBtn"
+        android:src="@drawable/home_calendar"
+        android:visibility="invisible"
+
+        app:layout_constraintBottom_toBottomOf="@+id/setting"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/notiBtn" />
+        app:layout_constraintTop_toTopOf="@+id/setting" />
 
     <ImageView
         android:id="@+id/textView3"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:src="@drawable/home_logo_name"
-        app:layout_constraintBottom_toBottomOf="@+id/notiBtn"
-        app:layout_constraintEnd_toStartOf="@+id/imageView4"
-        app:layout_constraintStart_toEndOf="@+id/notiBtn"
-        app:layout_constraintTop_toTopOf="@+id/notiBtn" />
+        app:layout_constraintBottom_toBottomOf="@+id/setting"
+        app:layout_constraintEnd_toStartOf="@+id/calendar"
+        app:layout_constraintStart_toEndOf="@+id/setting"
+        app:layout_constraintTop_toTopOf="@+id/setting" />
 
-    <!--    <ImageView-->
-    <!--        android:id="@+id/null_logo"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:src="@drawable/home_null_logo"-->
-    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
-    <!--        app:layout_constraintEnd_toEndOf="parent"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        app:layout_constraintTop_toBottomOf="@+id/imageView6"-->
-    <!--        app:layout_constraintVertical_bias="0.3" />-->
+    <ImageView
+        android:id="@+id/null_logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/home_logo"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView6"
+        app:layout_constraintVertical_bias="0.32" />
 
-    <!--    <TextView-->
-    <!--        android:id="@+id/null_text1"-->
-    <!--        android:layout_width="0dp"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:gravity="center"-->
-    <!--        android:text="Add +"-->
-    <!--        android:textColor="@color/primary"-->
-    <!--        android:textSize="32sp"-->
-    <!--        android:textStyle="bold"-->
-    <!--        android:layout_marginTop="80dp"-->
-    <!--        app:layout_constraintEnd_toEndOf="parent"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        app:layout_constraintTop_toBottomOf="@+id/null_logo" />-->
+    <TextView
+        android:id="@+id/null_text1"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:fontFamily="@font/pretendard_extrabold"
+        android:gravity="center"
+        android:lineSpacingExtra="-6sp"
+        android:letterSpacing="-0.02"
+        android:text="Add +"
+        android:textColor="@color/black"
+        android:textSize="32sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/null_logo" />
 
-    <!--    <TextView-->
-    <!--        android:id="@+id/null_text2"-->
-    <!--        android:layout_width="0dp"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:gravity="center"-->
-    <!--        android:text="Smart Ticket"-->
-    <!--        android:textColor="@color/black"-->
-    <!--        android:textSize="32sp"-->
-    <!--        android:textStyle="bold"-->
-    <!--        app:layout_constraintEnd_toEndOf="@+id/null_text1"-->
-    <!--        app:layout_constraintStart_toStartOf="@+id/null_text1"-->
-    <!--        app:layout_constraintTop_toBottomOf="@+id/null_text1" />-->
+    <!--        <TextView-->
+    <!--            android:id="@+id/null_text2"-->
 
-    <!--    <TextView-->
-    <!--        android:layout_width="0dp"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:gravity="center"-->
-    <!--        android:text="@string/home_null_text"-->
-    <!--        android:textColor="@color/gray300"-->
-    <!--        android:textSize="16sp"-->
-    <!--        android:layout_marginTop="12dp"-->
-    <!--        app:layout_constraintEnd_toEndOf="@+id/null_text2"-->
-    <!--        app:layout_constraintStart_toStartOf="@+id/null_text2"-->
-    <!--        app:layout_constraintTop_toBottomOf="@+id/null_text2" />-->
+    <!--            android:layout_width="0dp"-->
+    <!--            android:layout_height="wrap_content"-->
+    <!--            android:gravity="center"-->
+    <!--            android:text="Smart ticket"-->
+    <!--            android:textColor="@color/black"-->
+    <!--            android:textSize="32sp"-->
+    <!--            android:fontFamily="@font/pretendard_extrabold"-->
+    <!--            app:layout_constraintEnd_toEndOf="@+id/null_text1"-->
+    <!--            app:layout_constraintStart_toStartOf="@+id/null_text1"-->
+    <!--            app:layout_constraintTop_toBottomOf="@+id/null_text1" />-->
+
+    <TextView
+        android:id="@+id/null_text3"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:text="@string/home_null_text"
+        android:textColor="@color/gray300"
+        android:textSize="16sp"
+        android:lineSpacingExtra="-6sp"
+        android:letterSpacing="-0.02"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@+id/null_text1"
+        app:layout_constraintStart_toStartOf="@+id/null_text1"
+        app:layout_constraintTop_toBottomOf="@+id/null_text1" />
 
     <ImageView
         android:id="@+id/bgImg"
+        android:visibility="gone"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:scaleType="centerCrop"
@@ -116,40 +128,54 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView6" />
 
-        <androidx.viewpager2.widget.ViewPager2
-            android:id="@+id/ticketVP"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginTop="80dp"
-            app:layout_constraintBottom_toTopOf="@+id/indicator"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageView6" />
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/ticketVP"
+        android:visibility="gone"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="80dp"
+        app:layout_constraintBottom_toTopOf="@+id/indicator"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView6" />
 
     <ru.tinkoff.scrollingpagerindicator.ScrollingPagerIndicator
         android:id="@+id/indicator"
+        android:visibility="gone"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="20dp"
+        android:layout_marginBottom="80dp"
         app:layout_constraintBottom_toTopOf="@+id/nfcBtn"
         app:layout_constraintEnd_toEndOf="@+id/ticketVP"
         app:layout_constraintStart_toStartOf="@+id/ticketVP"
         app:layout_constraintTop_toBottomOf="@+id/ticketVP"
-        android:layout_marginBottom="40dp"
         app:spi_dotColor="@color/gray40"
         app:spi_dotSelectedColor="@color/primary"
-        app:spi_dotSelectedSize="10dp"
-        app:spi_dotSize="8dp"
+        app:spi_dotSelectedSize="6dp"
+        app:spi_dotSize="6dp"
         app:spi_visibleDotCount="5"
         app:spi_visibleDotThreshold="1" />
-    <ImageView
-        android:id="@+id/nfcBtn"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="24dp"
-        android:layout_marginBottom="24dp"
-        android:src="@drawable/home_nfc_black"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+
+<!--    <androidx.constraintlayout.widget.ConstraintLayout-->
+<!--        android:id="@+id/nfcBtn"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        android:layout_marginEnd="24dp"-->
+<!--        android:layout_marginBottom="24dp">-->
+
+        <ImageView
+            android:id="@+id/nfcBtn"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:src="@drawable/home_nfc_black"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+<!--    </androidx.constraintlayout.widget.ConstraintLayout>-->
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

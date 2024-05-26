@@ -19,7 +19,6 @@
         android:gravity="center"
         android:textColor="@color/gray100"
         android:textSize="16sp"
-        android:layout_marginEnd="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -39,7 +38,7 @@
         android:layout_height="wrap_content"
         app:dotsColor="@color/gray40"
         app:dotsCornerRadius="8dp"
-        app:dotsSize="16dp"
+        app:dotsSize="8dp"
         app:dotsSpacing="4dp"
         app:dotsWidthFactor="2.5"
         android:layout_marginBottom="60dp"
@@ -51,14 +50,14 @@
     <Button
         android:id="@+id/nextBtn"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:background="@drawable/onboarding_next_btn"
         android:gravity="center"
         android:text="다음"
         android:textColor="@color/white"
         android:textSize="16sp"
-        android:textStyle="bold"
         android:layout_marginBottom="60dp"
+        app:layout_constraintDimensionRatio="1:0.14"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />

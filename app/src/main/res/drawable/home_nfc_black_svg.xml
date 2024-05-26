@@ -1,0 +1,35 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape xmlns:android="http://schemas.android.com/apk/res/android"
+            android:shape="oval">
+            <gradient
+                android:endColor="#BABABA"
+                android:gradientRadius="2000"
+                android:startColor="@android:color/transparent"
+                android:type="radial" />
+        </shape>
+    </item>
+
+    <item>
+        <vector
+            android:width="59dp"
+            android:height="58dp"
+            android:viewportWidth="59"
+            android:viewportHeight="58">
+            <path
+                android:fillColor="#000000"
+                android:pathData="M29.839,29m-29,0a29,29 0,1 1,58 0a29,29 0,1 1,-58 0" />
+            <path
+                android:fillColor="#00000000"
+                android:pathData="M45.474,41.906C47.755,37.957 48.955,33.477 48.955,28.917C48.955,24.357 47.755,19.878 45.474,15.929M40.512,38.476C42.19,35.57 43.073,32.273 43.073,28.918C43.073,25.562 42.19,22.266 40.512,19.36M35.353,36.025C36.557,33.864 37.191,31.413 37.191,28.918C37.191,26.423 36.557,23.972 35.353,21.811"
+                android:strokeWidth="1"
+                android:strokeColor="#ffffff"
+                android:strokeLineCap="round" />
+            <path
+                android:fillColor="#ffffff"
+                android:fillType="evenOdd"
+                android:pathData="M17.586,17.665H15.685C14.58,17.665 13.685,18.56 13.685,19.665V39.152C13.685,40.257 14.58,41.152 15.685,41.152H25.369C26.474,41.152 27.369,40.257 27.369,39.152V19.665C27.369,18.56 26.474,17.665 25.369,17.665H23.468C23.457,18.197 23.022,18.626 22.487,18.626H18.566C18.031,18.626 17.597,18.197 17.586,17.665ZM22.491,16.665H25.369C27.026,16.665 28.369,18.008 28.369,19.665V39.152C28.369,40.809 27.026,42.152 25.369,42.152H15.685C14.028,42.152 12.685,40.809 12.685,39.152V19.665C12.685,18.008 14.028,16.665 15.685,16.665H18.563C18.564,16.665 18.565,16.665 18.566,16.665H22.487C22.489,16.665 22.49,16.665 22.491,16.665Z" />
+        </vector>
+    </item>
+</layer-list>
+

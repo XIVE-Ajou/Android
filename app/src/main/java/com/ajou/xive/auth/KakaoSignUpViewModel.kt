@@ -8,11 +8,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class KakaoSignUpViewModel : ViewModel(){
-    private val _authCode = MutableLiveData<String>()
-    val authCode : LiveData<String>
-        get() = _authCode
+    private val _kakaoToken = MutableLiveData<String>()
+    val kakaoToken : LiveData<String>
+        get() = _kakaoToken
 
-    fun setAuthCode(string : String) = viewModelScope.launch(Dispatchers.IO) {
-        _authCode.postValue(string)
+    fun setKakaoToken(string : String) = viewModelScope.launch(Dispatchers.IO) {
+        _kakaoToken.postValue(string)
     }
 }

@@ -4,6 +4,15 @@
     package="com.ajou.xive">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.NFC" />
+
+    <uses-feature
+        android:name="android.hardware.nfc"
+        android:required="true" />
+
+    <queries>
+        <package android:name="com.kakao.talk" />
+    </queries>
 
     <application
         android:name=".App"
@@ -18,16 +27,38 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".auth.KakaoSignUpActivity"
+            android:name=".NetworkErrorActivity"
+            android:exported="false" />
+        <activity
+            android:name=".home.WebviewActivity"
             android:exported="false" />
         <activity
             android:name=".home.HomeActivity"
+            android:exported="false"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+
+                <data android:mimeType="*/*" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.nfc.action.TECH_DISCOVERED"
+                android:resource="@xml/tech_list" />
+        </activity>
+        <activity
+            android:name=".home.CalendarActivity"
             android:exported="false" />
         <activity
             android:name=".onboarding.view.OnBoardingActivity"
             android:exported="false" />
         <activity
             android:name=".auth.SignUpActivity"
+            android:exported="false" />
+        <activity
+            android:name=".setting.SettingActivity"
             android:exported="false" />
         <activity
             android:name=".SplashActivity"
@@ -39,8 +70,19 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
-            android:exported="false" />
+            android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="oauth"
+                    android:scheme="kakao${NATIVE_API_KEY}" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

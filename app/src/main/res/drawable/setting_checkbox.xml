@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="false">
+        <vector
+            xmlns:aapt="http://schemas.android.com/aapt"
+            android:width="16dp"
+            android:height="16dp"
+            android:viewportWidth="16"
+            android:viewportHeight="16"
+            >
+            <group>
+                <clip-path
+                    android:pathData="M2 0H14C15.1046 0 16 0.895431 16 2V14C16 15.1046 15.1046 16 14 16H2C0.895431 16 0 15.1046 0 14V2C0 0.895431 0.895431 0 2 0Z"
+                    />
+                <path
+                    android:pathData="M2 0H14C15.1046 0 16 0.895431 16 2V14C16 15.1046 15.1046 16 14 16H2C0.895431 16 0 15.1046 0 14V2C0 0.895431 0.895431 0 2 0Z"
+                    android:strokeWidth="2"
+                    android:strokeColor="#999999"
+                    />
+            </group>
+        </vector>
+    </item>
+    <item android:state_checked="true">
+        <layer-list>
+            <item>
+                <vector
+                    xmlns:aapt="http://schemas.android.com/aapt"
+                    android:width="16dp"
+                    android:height="16dp"
+                    android:viewportWidth="16"
+                    android:viewportHeight="16"
+                    >
+                    <group>
+                        <clip-path
+                            android:pathData="M2 0H14C15.1046 0 16 0.895431 16 2V14C16 15.1046 15.1046 16 14 16H2C0.895431 16 0 15.1046 0 14V2C0 0.895431 0.895431 0 2 0Z"
+                            />
+                        <path
+                            android:pathData="M0 0V16H16V0"
+                            android:fillColor="#000000"
+                            />
+                    </group>
+                </vector>
+            </item>
+            <item android:gravity="center">
+                <vector
+                    android:width="11dp"
+                    android:height="10dp"
+                    android:viewportWidth="11"
+                    android:viewportHeight="10">
+                    <path
+                        android:strokeWidth="1"
+                        android:pathData="M0.611,4.222L3.349,7.863C3.741,8.383 4.518,8.396 4.927,7.889L10.389,1.111"
+                        android:fillColor="#00000000"
+                        android:strokeColor="#ffffff"
+                        android:strokeLineCap="round"/>
+                </vector>
+            </item>
+        </layer-list>
+    </item>
+</selector>

@@ -36,7 +36,6 @@ class SwipeFragment2 : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d("SwipeFragment2","onViewCreated")
         val gifDrawable = pl.droidsonroids.gif.GifDrawable(mContext!!.resources, R.drawable.onboarding2)
         binding.gif.setImageDrawable(gifDrawable)
     }
