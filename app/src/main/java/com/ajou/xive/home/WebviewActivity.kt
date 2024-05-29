@@ -1,5 +1,6 @@
 package com.ajou.xive.home
 
+import android.graphics.Bitmap
 import android.net.http.SslError
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -12,13 +13,22 @@ import com.ajou.xive.databinding.ActivityWebviewBinding
 class WebviewActivity : AppCompatActivity() {
     private var _binding : ActivityWebviewBinding? = null
     private val binding get() = _binding!!
+
+    override fun onBackPressed() {
+        if (binding.webview.canGoBack()) {
+            binding.webview.goBack()
+        }else{
+            super.onBackPressed()
+        }
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityWebviewBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         val url = intent.getStringExtra("url")
-//        val url = "https://xive.co.kr/frida/"
+        WebView.setWebContentsDebuggingEnabled(true)
+
         binding.webview.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
@@ -38,10 +48,17 @@ class WebviewActivity : AppCompatActivity() {
         WebView.setWebContentsDebuggingEnabled(true)
         binding.webview.setLayerType(View.LAYER_TYPE_HARDWARE, null)
         binding.webview.setNetworkAvailable(true)
-        binding.webview.webViewClient = WebViewClient()
+//        binding.webview.webViewClient = WebViewClient()
+        binding.webview.webViewClient = object : WebViewClient(){
+            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                Log.d("nfc data url check",url.toString())
+            }
+        }
         binding.webview.webChromeClient = WebChromeClient()
 
         binding.webview.loadUrl(url!!)
+//        Log.d("nfc data url",url.toString())
 
 //        var prevScrollY = 0
 //        binding.webview.viewTreeObserver.addOnScrollChangedListener {

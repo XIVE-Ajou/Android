@@ -45,17 +45,21 @@ import okhttp3.RequestBody
 import java.util.*
 
 class HomeActivity : AppCompatActivity(), DataSelection {
-    private var _binding : ActivityHomeBinding? = null
+    private var _binding: ActivityHomeBinding? = null
     private val binding get() = _binding!!
     private val dataStore = UserDataStore()
-    private val viewModel : TicketViewModel by viewModels()
+    private val viewModel: TicketViewModel by viewModels()
     private val ticketService = RetrofitInstance.getInstance().create(TicketService::class.java)
     private val nfcService = NFCRetrofitInstance.getInstance().create(NFCService::class.java)
-    private lateinit var accessToken : String
-    private lateinit var refreshToken : String
+    private lateinit var accessToken: String
+    private lateinit var refreshToken: String
     var state = 0
 
     var nfcAdapter: NfcAdapter? = null
+    val multiOptions = RequestOptions().transform(
+        FitCenter(),
+        BlurTransformation(10, 1)
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,7 +74,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         val thread = object : Thread() {
             override fun run() {
                 super.run()
-                // 5초 이하의 짧은 작업을 굉장히 많이 반복하고 싶을때만 사용
                 binding.nfcBtn.startAnimation(anim)
                 handler.postDelayed(this, 1500) // 100 쉬고 동작 -> 100 사이에 화면 처리
 
@@ -79,65 +82,62 @@ class HomeActivity : AppCompatActivity(), DataSelection {
 
 
         if (nfcAdapter == null) {
-            // Stop here, we definitely need NFC
-            Toast.makeText(this,"NFC 사용이 불가능한 기종입니다",Toast.LENGTH_SHORT)
+            Toast.makeText(this, "NFC 사용이 불가능한 기종입니다", Toast.LENGTH_SHORT)
         }
 
         binding.nfcBtn.setOnClickListener {
             val dialog = NfcTaggingBottomSheetFragment()
-            dialog.show(supportFragmentManager,dialog.tag)
+            dialog.show(supportFragmentManager, dialog.tag)
         }
 
         binding.setting.setOnClickListener {
             val intent = Intent(this, SettingActivity::class.java)
             startActivity(intent)
         }
-        val adapter = TicketViewPagerAdapter(this, emptyList(),this)
+        val adapter = TicketViewPagerAdapter(this, emptyList(), this)
 
-        CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
-            accessToken = dataStore.getAccessToken().toString()
-            refreshToken = dataStore.getRefreshToken().toString()
-            val ticketListDeferred = async { ticketService.getAllTickets(accessToken, refreshToken) }
-            val ticketListResponse = ticketListDeferred.await()
-            if (ticketListResponse.isSuccessful){
-                viewModel.setType("update")
-                viewModel.setTicketList(ticketListResponse.body()!!.data)
-                withContext(Dispatchers.Main){
-                    if (ticketListResponse.body()!!.data.isEmpty()){
-                        binding.nullLogo.visibility = View.VISIBLE
-                        binding.nullText1.visibility = View.VISIBLE
-                        binding.nullText3.visibility = View.VISIBLE
-                        state = 0
-                        animatedBtn(handler,thread, anim)
-                    }else{
-                        binding.bgImg.visibility = View.VISIBLE
-                        binding.ticketVP.visibility = View.VISIBLE
-                        binding.indicator.visibility = View.VISIBLE
-                        state = 1
-                        animatedBtn(handler,thread, anim) // 애니메이션 멈추기
-                    }
-                }
+        viewModel.hasTicket.observe(this, androidx.lifecycle.Observer {
+            if (viewModel.hasTicket.value == true) {
+                binding.bgImg.visibility = View.VISIBLE
+                binding.ticketVP.visibility = View.VISIBLE
+                binding.indicator.visibility = View.VISIBLE
+                state = 1
+                animatedBtn(handler, thread, anim) // 애니메이션 멈추기
+            }else{
+                binding.nullLogo.visibility = View.VISIBLE
+                binding.nullText1.visibility = View.VISIBLE
+                binding.nullText3.visibility = View.VISIBLE
+                state = 0
+                animatedBtn(handler, thread, anim)
             }
-        }
+        })
 
         viewModel.ticketList.observe(this, androidx.lifecycle.Observer {
-            when(viewModel.type.value){
+            when (viewModel.type.value) {
                 "insert" -> {
                     adapter.addToList(viewModel.ticketList.value!!)
-                    if (viewModel.ticketList.value!!.size != 0){
+                    binding.indicator.attachToPager(binding.ticketVP)
+                    if (binding.indicator.visibility == View.VISIBLE) binding.indicator.invalidate()
+                    if (viewModel.ticketList.value!!.size != 0) {
                         binding.indicator.visibility = View.VISIBLE
                         binding.ticketVP.visibility = View.VISIBLE
                         binding.nullLogo.visibility = View.GONE
                         binding.nullText1.visibility = View.GONE
                         binding.nullText3.visibility = View.GONE
+                        Glide.with(this@HomeActivity)
+                            .load(R.drawable.ticket_bg)
+                            .apply(multiOptions)
+                            .into(binding.bgImg)
+                        binding.bgImg.visibility = View.VISIBLE
                     }
                 }
                 "update" -> {
                     adapter.updateList(viewModel.ticketList.value!!)
                 }
                 else -> {
-                    adapter.removeAtList(viewModel.ticketList.value!!,viewModel.type.value!!.toInt())
-                    if (viewModel.ticketList.value!!.size == 0){
+                    adapter.removeAtList(viewModel.ticketList.value!!)
+                    if (viewModel.ticketList.value!!.size == 0) {
+                        binding.bgImg.setImageDrawable(null)
                         binding.indicator.visibility = View.INVISIBLE
                         binding.nullLogo.visibility = View.VISIBLE
                         binding.nullText1.visibility = View.VISIBLE
@@ -147,10 +147,27 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             }
         })
 
+        viewModel.isError.observe(this, androidx.lifecycle.Observer {
+            if (viewModel.isError.value == true){
+                val intent = Intent(this, NetworkErrorActivity::class.java)
+                startActivity(intent)
+                viewModel.isError.value = false
+            }
+        })
+
+        CoroutineScope(Dispatchers.IO).launch {
+            accessToken = dataStore.getAccessToken().toString()
+            refreshToken = dataStore.getRefreshToken().toString()
+        }
         val text = "Add+\nSmart ticket"
         val spannable = SpannableStringBuilder(text)
 
-        spannable.setSpan(ForegroundColorSpan(ContextCompat.getColor(this,R.color.primary)), 0,4, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        spannable.setSpan(
+            ForegroundColorSpan(ContextCompat.getColor(this, R.color.primary)),
+            0,
+            4,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
 
         // TextView에 Spannable 문자열 설정
         binding.nullText1.text = spannable
@@ -167,10 +184,16 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         binding.ticketVP.offscreenPageLimit = 4
         // item_view 간의 양 옆 여백을 상쇄할 값
 
-        val offsetBetweenPages = resources.getDimensionPixelOffset(R.dimen.offsetBetweenPages).toFloat()
+        val offsetBetweenPages =
+            resources.getDimensionPixelOffset(R.dimen.offsetBetweenPages).toFloat()
 
-        binding.ticketVP.addItemDecoration(object: RecyclerView.ItemDecoration() {
-            override fun getItemOffsets(outRect: Rect, view: View, parent: RecyclerView, state: RecyclerView.State) {
+        binding.ticketVP.addItemDecoration(object : RecyclerView.ItemDecoration() {
+            override fun getItemOffsets(
+                outRect: Rect,
+                view: View,
+                parent: RecyclerView,
+                state: RecyclerView.State
+            ) {
                 outRect.right = offsetBetweenPages.toInt()
                 outRect.left = offsetBetweenPages.toInt()
             }
@@ -180,8 +203,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             val myOffset = position * -(5 * offsetBetweenPages)
             if (position < -1) {
                 page.translationX = -myOffset
-            }
-            else if (position <= 1) {
+            } else if (position <= 1) {
                 // Paging 시 Y축 Animation 배경색을 약간 연하게 처리
                 val scaleFactor = 0.8f.coerceAtLeast(1 - kotlin.math.abs(position))
                 page.translationX = myOffset
@@ -193,37 +215,15 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             }
         }
 
-        val multiOptions = RequestOptions().transform(
-            FitCenter(),
-            BlurTransformation(25,3)
-        )
-
-        binding.ticketVP.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback(){
+        binding.ticketVP.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                Glide.with(this@HomeActivity)
-                    .asBitmap()
-                    .load(viewModel.ticketList.value?.get(position)?.eventImageUrl)
-                    .apply(multiOptions)
-                    .into(object : CustomTarget<Bitmap>(2, 2) {
-
-                    override fun onResourceReady(
-                        resource: Bitmap,
-                        transition: Transition<in Bitmap>?
-                    ) {
-                        binding.bgImg.setImageDrawable(
-                            BitmapDrawable(
-                                binding.root.context.resources,
-                                resource
-                            )
-                        )
-                    }
-
-                    override fun onLoadCleared(placeholder: Drawable?) {
-                        binding.bgImg.setImageDrawable(null)
-                    }
+                if (viewModel.ticketList.value!!.isNotEmpty()) {
+                    Glide.with(this@HomeActivity)
+                        .load(R.drawable.ticket_bg)
+                        .apply(multiOptions)
+                        .into(binding.bgImg)
                 }
-                )
             }
         })
     }
@@ -231,11 +231,15 @@ class HomeActivity : AppCompatActivity(), DataSelection {
     override fun onResume() {
         super.onResume()
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+            this,
+            0,
+            Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
         )
         nfcAdapter?.enableForegroundDispatch(this, pendingIntent, null, null)
 
     }
+
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
 
@@ -245,21 +249,22 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             for (i in messages!!.indices) getNdefMsg(messages[i] as NdefMessage)
         }
     }
+
     override fun onPause() {
         super.onPause()
         if (nfcAdapter != null) nfcAdapter?.disableForegroundDispatch(this)
     }
+
     private fun getNdefMsg(mMessage: NdefMessage) {
         val recs = mMessage.records
         for (i in recs.indices) {
             val record = recs[i]
-            if (Arrays.equals(record.type, NdefRecord.RTD_TEXT)){
-                val url = BuildConfig.BASE_NFC_URL+byteArrayToStringWithNDEF(record.payload)
+            if (Arrays.equals(record.type, NdefRecord.RTD_TEXT)) {
+                val url = BuildConfig.BASE_NFC_URL + byteArrayToStringWithNDEF(record.payload)
 //                getDecryptionTicket(url)
             } else if (Arrays.equals(record.type, NdefRecord.RTD_URI)) {
-                val splitUrl = "?nfc="
-                val originUrl = record.toUri().toString()
-                val url = originUrl.replace(splitUrl,"")
+                val url = record.toUri().toString()
+                Log.d("url", url)
                 getDecryptionTicket(url)
             }
         }
@@ -277,13 +282,21 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         val languageCodeLength = statusByte and 0x3F
 
         // 실제 텍스트 데이터는 언어 코드 다음에 위치
-        return String(byteArray, languageCodeLength + 1, byteArray.size - languageCodeLength - 1, Charsets.UTF_8)
+        return String(
+            byteArray,
+            languageCodeLength + 1,
+            byteArray.size - languageCodeLength - 1,
+            Charsets.UTF_8
+        )
     }
 
-    private fun getDecryptionTicket(url:String) {
+    private fun getDecryptionTicket(url: String) {
+        val splitUrl = "?nfc="
+        var originUrl = url.replace(splitUrl, "")
+        originUrl = originUrl.replace("https://", "")
         CoroutineScope(Dispatchers.IO).launch {
             val jsonObject = JsonObject().apply {
-                addProperty("url", url)
+                addProperty("url", originUrl)
             }
             val requestBody = RequestBody.create(
                 "application/json".toMediaTypeOrNull(),
@@ -293,56 +306,62 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             val nfcResponse = nfcDeferred.await()
             if (nfcResponse.isSuccessful) {
                 val body = nfcResponse.body()
-                val data = NFCData(body!!.eventId.toInt(),body.nfcId.toInt(),body.seatNumber)
-                val postTicketDeferred = async { ticketService.postTicket(accessToken, refreshToken,data) }
+                val data = NFCData(body!!.eventId.toInt(), body.nfcId.toInt(), body.seatNumber, url)
+                Log.d("nfc data",data.toString())
+                val postTicketDeferred =
+                    async { ticketService.postTicket(accessToken, refreshToken, data) }
                 val postTicketResponse = postTicketDeferred.await()
                 if (postTicketResponse.isSuccessful) {
-                    val list = viewModel.ticketList.value
-                    list!!.add(postTicketResponse.body()!!)
-                    viewModel.setType("insert")
-                    viewModel.setTicketList(list)
-                }else{
-                    Log.d("postTicketResponse faill",postTicketResponse.errorBody()?.string().toString())
+                    val list = mutableListOf<Ticket>()
+                    viewModel.ticketList.value?.let { list.addAll(it) }
+                    val body = postTicketResponse.body()!!
+                    list.add(body)
+                    Log.d("nfc data check",body.toString())
+                    withContext(Dispatchers.Main) {
+                        viewModel.setType("insert")
+                        viewModel.setTicketList(list)
+                    }
+                } else {
+                    Log.d(
+                        "postTicketResponse faill",
+                        postTicketResponse.errorBody()?.string().toString()
+                    )
                 }
-            }else{
-                Log.d("nfcResponse fail",nfcResponse.errorBody()?.string().toString())
+            } else {
+                Log.d("nfcResponse fail", nfcResponse.errorBody()?.string().toString())
             }
         }
     }
 
-    override fun getSelectedTicketId(id: Int,position:Int) {
+    override fun getSelectedTicketId(id: Int, position: Int) {
         CoroutineScope(Dispatchers.IO).launch {
-            val deleteDeferred = async { ticketService.deleteTicket(accessToken,refreshToken,id.toString()) }
+            val deleteDeferred =
+                async { ticketService.deleteTicket(accessToken, refreshToken, id.toString()) }
             val deleteResponse = deleteDeferred.await()
-            if (deleteResponse.isSuccessful){
+            if (deleteResponse.isSuccessful) {
                 viewModel.setType(position.toString())
                 val list = viewModel.ticketList.value
                 list!!.removeAt(position)
                 viewModel.setTicketList(list)
-            }else{
-                Log.d("deleteResponse fail",deleteResponse.errorBody()?.string().toString())
+            } else {
+                Log.d("deleteResponse fail", deleteResponse.errorBody()?.string().toString())
             }
         }
     }
 
     override fun getSelectedTicketUrl(url: String) {
         val intent = Intent(this, WebviewActivity::class.java)
-        intent.putExtra("url",url)
+        intent.putExtra("url", url)
         startActivity(intent)
     }
 
-    private fun animatedBtn(handler: Handler, thread: Thread, anim: Animation){
+    private fun animatedBtn(handler: Handler, thread: Thread, anim: Animation) {
         binding.nfcBtn.startAnimation(anim)
 
-        if (state == 1){
+        if (state == 1) {
             handler.removeCallbacks(thread)
-        }else{
+        } else {
             handler.postDelayed(thread, 1500)
         }
-    }
-
-    val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-        val intent = Intent(this, NetworkErrorActivity::class.java)
-        startActivity(intent)
     }
 }

@@ -52,6 +52,7 @@ class SplashActivity : AppCompatActivity() {
     }
 
     val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+
         showErrorDialog()
     }
     private fun showErrorDialog() {

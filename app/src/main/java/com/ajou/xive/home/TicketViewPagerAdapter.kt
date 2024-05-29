@@ -2,6 +2,9 @@ package com.ajou.xive.home
 
 import android.R.id.text1
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -13,23 +16,25 @@ import com.ajou.xive.R
 import com.ajou.xive.databinding.ItemTicketBinding
 import com.ajou.xive.home.model.Ticket
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.FitCenter
+import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
+import jp.wasabeef.glide.transformations.BlurTransformation
 
 
 class TicketViewPagerAdapter(val context : Context, var list: List<Ticket>, val link : DataSelection):RecyclerView.Adapter<TicketViewPagerAdapter.ViewHolder>() {
-
     inner class ViewHolder(val binding: ItemTicketBinding): RecyclerView.ViewHolder(binding.root){
         fun bind(data:Ticket) {
             Glide.with(context)
                 .load(data.eventImageUrl)
                 .centerCrop()
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(binding.img)
 
-//            Glide.with(context)
-//                .load(context.resources.getDrawable(R.drawable.ticket_ex))
-//                .into(binding.img)
             binding.ticket.setOnClickListener {
                 link.getSelectedTicketUrl(data.eventWebUrl)
-
             }
 
             binding.ticket.setOnLongClickListener {
@@ -37,9 +42,6 @@ class TicketViewPagerAdapter(val context : Context, var list: List<Ticket>, val 
                 return@setOnLongClickListener(true)
 
             }
-//            binding.ticket.setOnClickListener {
-//                link.getSelectedTicketUrl(data.eventWebUrl)
-//            }
 
         }
     }
@@ -70,9 +72,11 @@ class TicketViewPagerAdapter(val context : Context, var list: List<Ticket>, val 
         this.notifyItemInserted(list.size-1)
     }
 
-    fun removeAtList(newList: List<Ticket>, position: Int){
+    fun removeAtList(newList: List<Ticket>){
         list = newList
-        this.notifyItemRemoved(position)
+//        this.notifyItemRemoved(position)
+//        notifyItemRangeChanged(position, list.size)
+        notifyDataSetChanged()
     }
 
 }
