@@ -130,13 +130,10 @@ class SignUpActivity : AppCompatActivity() {
                     if (error is ClientError && error.reason == ClientErrorCause.Cancelled) {
                         return@loginWithKakaoTalk
                     }
-                    // 다른 오류
-                    else {
                         UserApiClient.instance.loginWithKakaoAccount(
                             this,
                             callback = mCallback
                         ) // 카카오 이메일 로그인
-                    }
                 }
                 // 로그인 성공 부분
                 else if (token != null) {
@@ -150,6 +147,7 @@ class SignUpActivity : AppCompatActivity() {
                 }
             }
         } else {
+            Log.d(ContentValues.TAG,"카카오계정으로 로그인 시도")
             UserApiClient.instance.loginWithKakaoAccount(
                 this,
                 callback = mCallback
@@ -161,9 +159,12 @@ class SignUpActivity : AppCompatActivity() {
         if (error != null) {
             Log.e(ContentValues.TAG, "카카오계정으로 로그인 실패", error)
         } else if (token != null) {
+            Log.d(ContentValues.TAG,"카카오계정으로 로그인 성공 $token")
             CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
                 viewModel.setKakaoToken(token.accessToken)
             }
+        }else{
+            Log.d(ContentValues.TAG,"에러 $error  token $token")
         }
     }
 

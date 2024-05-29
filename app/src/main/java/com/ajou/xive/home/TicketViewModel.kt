@@ -47,7 +47,6 @@ class TicketViewModel : ViewModel() {
     }
     init {
         viewModelScope.launch(exceptionHandler) {
-            Log.d("viewmodel","checked")
             accessToken = dataStore.getAccessToken().toString()
             refreshToken = dataStore.getRefreshToken().toString()
             val ticketListDeferred =

@@ -13,6 +13,7 @@ def redirect_uri = properties.getProperty('redirect_uri')
 def base_url = properties.getProperty('base_url')
 def nfc_url = properties.getProperty('nfc_url')
 def base_nfc_url = properties.getProperty('base_nfc_url')
+def manifest_native_app_key = properties.getProperty('manifest_native_app_key')
 
 android {
     namespace 'com.ajou.xive'
@@ -22,8 +23,8 @@ android {
         applicationId "com.ajou.xive"
         minSdk 24
         targetSdk 33
-        versionCode 3
-        versionName "1.0.2"
+        versionCode 4
+        versionName "1.0.3"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -33,12 +34,15 @@ android {
         buildConfigField "String", "BASE_URL", base_url
         buildConfigField "String", "NFC_URL", nfc_url
         buildConfigField "String", "BASE_NFC_URL", base_nfc_url
-
-        manifestPlaceholders = [NATIVE_API_KEY : native_api_key]
     }
 
     buildTypes {
+        debug {
+            minifyEnabled = false
+            manifestPlaceholders= [NATIVE_API_KEY:manifest_native_app_key]
+        }
         release {
+            manifestPlaceholders= [NATIVE_API_KEY:manifest_native_app_key]
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
@@ -109,7 +113,7 @@ dependencies {
     implementation("com.kizitonwose.calendar:view:2.1.1")
 
     // 카카오 로그인
-    implementation "com.kakao.sdk:v2-user:2.12.1"
+    implementation "com.kakao.sdk:v2-user:2.20.1"
 
     implementation platform('com.google.firebase:firebase-bom:33.0.0')
 

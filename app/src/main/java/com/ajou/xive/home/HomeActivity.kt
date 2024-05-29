@@ -264,7 +264,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
 //                getDecryptionTicket(url)
             } else if (Arrays.equals(record.type, NdefRecord.RTD_URI)) {
                 val url = record.toUri().toString()
-                Log.d("url", url)
                 getDecryptionTicket(url)
             }
         }
@@ -307,7 +306,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             if (nfcResponse.isSuccessful) {
                 val body = nfcResponse.body()
                 val data = NFCData(body!!.eventId.toInt(), body.nfcId.toInt(), body.seatNumber, url)
-                Log.d("nfc data",data.toString())
                 val postTicketDeferred =
                     async { ticketService.postTicket(accessToken, refreshToken, data) }
                 val postTicketResponse = postTicketDeferred.await()
@@ -316,7 +314,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                     viewModel.ticketList.value?.let { list.addAll(it) }
                     val body = postTicketResponse.body()!!
                     list.add(body)
-                    Log.d("nfc data check",body.toString())
                     withContext(Dispatchers.Main) {
                         viewModel.setType("insert")
                         viewModel.setTicketList(list)

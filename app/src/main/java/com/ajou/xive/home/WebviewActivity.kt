@@ -49,12 +49,7 @@ class WebviewActivity : AppCompatActivity() {
         binding.webview.setLayerType(View.LAYER_TYPE_HARDWARE, null)
         binding.webview.setNetworkAvailable(true)
 //        binding.webview.webViewClient = WebViewClient()
-        binding.webview.webViewClient = object : WebViewClient(){
-            override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-                super.onPageStarted(view, url, favicon)
-                Log.d("nfc data url check",url.toString())
-            }
-        }
+        binding.webview.webViewClient = WebViewClient()
         binding.webview.webChromeClient = WebChromeClient()
 
         binding.webview.loadUrl(url!!)
