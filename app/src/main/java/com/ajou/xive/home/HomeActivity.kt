@@ -80,7 +80,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             }
         }
 
-
         if (nfcAdapter == null) {
             Toast.makeText(this, "NFC 사용이 불가능한 기종입니다", Toast.LENGTH_SHORT)
         }
@@ -310,14 +309,21 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                     async { ticketService.postTicket(accessToken, refreshToken, data) }
                 val postTicketResponse = postTicketDeferred.await()
                 if (postTicketResponse.isSuccessful) {
-                    val list = mutableListOf<Ticket>()
-                    viewModel.ticketList.value?.let { list.addAll(it) }
                     val body = postTicketResponse.body()!!
-                    list.add(body)
-                    withContext(Dispatchers.Main) {
-                        viewModel.setType("insert")
-                        viewModel.setTicketList(list)
+                    if (body.isNew){
+                        val list = mutableListOf<Ticket>()
+                        viewModel.ticketList.value?.let { list.addAll(it) }
+                        list.add(body)
+                        withContext(Dispatchers.Main) {
+                            viewModel.setType("insert")
+                            viewModel.setTicketList(list)
+                        }
+                    }else{
+                        withContext(Dispatchers.Main){
+                            Toast.makeText(this@HomeActivity, "이미 등록된 티켓입니다",Toast.LENGTH_SHORT).show()
+                        }
                     }
+
                 } else {
                     Log.d(
                         "postTicketResponse faill",
