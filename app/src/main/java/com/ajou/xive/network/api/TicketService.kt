@@ -1,7 +1,7 @@
 package com.ajou.xive.network.api
 
 import com.ajou.xive.home.model.Ticket
-import com.ajou.xive.network.model.NFCData
+import com.ajou.xive.home.model.NFCData
 import com.ajou.xive.network.model.TicketResponse
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody

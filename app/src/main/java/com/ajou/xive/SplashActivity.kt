@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.util.Log
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatDelegate
 import com.ajou.xive.auth.SignUpActivity
 import com.ajou.xive.databinding.ActivitySplashBinding
 import com.ajou.xive.home.HomeActivity
@@ -23,6 +24,7 @@ class SplashActivity : AppCompatActivity() {
     private val dataStore = UserDataStore()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
         _binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
