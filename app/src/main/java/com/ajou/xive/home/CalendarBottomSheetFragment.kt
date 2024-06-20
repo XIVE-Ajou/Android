@@ -51,6 +51,8 @@ class CalendarBottomSheetFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.date.text = String.format(getString(R.string.calendar_popup_title),6,21) // TODO 전달받은 날로 변경
+
         // TODO 티켓 띄우기 calendarActivity에서 받아온 스케줄 정보로 ticketId 하나씩 던져서 정보 받아서 띄우기
         // TODO ticketRV item layout 만들어야함
         // TODO 타이틀격인 date에 값 넣으려면 날짜 받아와야 함 -> 가능한 이거랑 위에 스케줄 정보 viewmodel로 관리하는 게 나을듯

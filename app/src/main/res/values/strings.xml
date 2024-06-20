@@ -12,6 +12,8 @@
     <string name="onboarding3_text2">내 손 안의 문화생활 플랫폼, 카이브와 함께해요!</string>
     <string name="home_null_text">스마트 티켓을 등록해주세요</string>
 
+    <string name="calendar_popup_title">%1$d월 %2$d일</string>
+
     <string name="word_count">%s/500</string>
 
     <string name="withdrawal">탈퇴하시면 개인정보 처리 방침에 따라 최대 30일 이내에\n\‘%1$s\'님의 모든 개인정보 및 계정 정보가 삭제됩니다.\n이후에는 \‘%2$s\'님의 앱 내 활동 데이터는 다시 복구될 수 없습니다.</string>
