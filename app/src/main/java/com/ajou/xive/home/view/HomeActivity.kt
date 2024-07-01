@@ -1,4 +1,4 @@
-package com.ajou.xive.home
+package com.ajou.xive.home.view
 
 import android.app.PendingIntent
 import android.content.Intent
@@ -22,12 +22,15 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.ajou.xive.*
 import com.ajou.xive.databinding.ActivityHomeBinding
+import com.ajou.xive.home.TicketViewModel
+import com.ajou.xive.home.adapter.TicketViewPagerAdapter
 import com.ajou.xive.home.model.Ticket
 import com.ajou.xive.network.NFCRetrofitInstance
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.NFCService
 import com.ajou.xive.network.api.TicketService
 import com.ajou.xive.home.model.NFCData
+import com.ajou.xive.home.view.fragment.NfcTaggingBottomSheetFragment
 import com.ajou.xive.setting.SettingActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.FitCenter
@@ -71,7 +74,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             override fun run() {
                 super.run()
                 binding.nfcBtn.startAnimation(anim)
-                handler.postDelayed(this, 1500) // 100 쉬고 동작 -> 100 사이에 화면 처리
+                handler.postDelayed(this, 1500)
 
             }
         }

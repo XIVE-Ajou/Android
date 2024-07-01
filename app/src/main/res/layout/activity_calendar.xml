@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".home.CalendarActivity">
+    tools:context=".home.view.CalendarActivity">
 
     <TextView
         android:id="@+id/title"
@@ -78,25 +78,53 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="@+id/month" />
 
-    <include
-        android:id="@+id/titlesContainer"
-        layout="@layout/calendar_day_titles_container" />
+    <LinearLayout
+        android:id="@+id/dayWeek"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="7"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="@+id/month_plus"
+        app:layout_constraintStart_toStartOf="@+id/year"
+        app:layout_constraintTop_toBottomOf="@+id/year">
+
+        <include
+            layout="@layout/calendar_day_title_text" />
+
+        <include
+            layout="@layout/calendar_day_title_text" />
+
+        <include
+            layout="@layout/calendar_day_title_text" />
+
+        <include
+            layout="@layout/calendar_day_title_text" />
+
+        <include
+            layout="@layout/calendar_day_title_text" />
+
+        <include
+            layout="@layout/calendar_day_title_text" />
+
+        <include
+            layout="@layout/calendar_day_title_text" />
+
+    </LinearLayout>
 
     <com.kizitonwose.calendar.view.CalendarView
         android:id="@+id/calendar"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="32dp"
         app:cv_daySize="rectangle"
         app:cv_dayViewResource="@layout/calendar_day"
-        app:cv_monthHeaderResource="@layout/calendar_day_titles_container"
         app:cv_outDateStyle="endOfGrid"
         app:cv_scrollPaged="true"
         android:layout_marginBottom="60dp"
         app:layout_constraintBottom_toTopOf="@+id/nfcBtn"
         app:layout_constraintEnd_toEndOf="@+id/month_plus"
         app:layout_constraintStart_toStartOf="@+id/year"
-        app:layout_constraintTop_toBottomOf="@+id/month" />
+        app:layout_constraintTop_toBottomOf="@+id/dayWeek" />
 
     <ImageView
         android:id="@+id/nfcBtn"

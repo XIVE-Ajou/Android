@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".home.CalendarBottomSheetFragment">
+    android:background="@drawable/calendar_bottomsheet_bg"
+    tools:context=".home.view.fragment.CalendarBottomSheetFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -15,11 +16,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:letterSpacing="-0.02"
-            android:text="4월 8일"
             android:textColor="@color/black"
             android:textSize="20sp"
             android:gravity="center"
             android:layout_margin="16dp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -28,6 +29,8 @@
             android:id="@+id/division"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:background="@drawable/line"
+            android:layout_marginTop="16dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/date"/>
@@ -36,10 +39,10 @@
             android:id="@+id/ticketRV"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/division"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/division" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

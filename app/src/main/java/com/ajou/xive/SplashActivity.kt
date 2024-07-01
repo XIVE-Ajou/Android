@@ -4,17 +4,12 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatDelegate
 import com.ajou.xive.auth.SignUpActivity
 import com.ajou.xive.databinding.ActivitySplashBinding
-import com.ajou.xive.home.HomeActivity
-import com.ajou.xive.onboarding.view.OnBoardingActivity
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.ajou.xive.home.view.HomeActivity
 import kotlinx.coroutines.*
-import java.net.ConnectException
 
 class SplashActivity : AppCompatActivity() {
     private var _binding: ActivitySplashBinding? = null

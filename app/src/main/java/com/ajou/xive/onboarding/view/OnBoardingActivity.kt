@@ -7,7 +7,7 @@ import android.view.View
 import androidx.viewpager2.widget.ViewPager2
 import com.ajou.xive.R
 import com.ajou.xive.databinding.ActivityOnBoardingBinding
-import com.ajou.xive.home.HomeActivity
+import com.ajou.xive.home.view.HomeActivity
 import com.ajou.xive.onboarding.OnBoardingViewPagerAdapter
 
 class OnBoardingActivity : AppCompatActivity() {
@@ -45,7 +45,7 @@ class OnBoardingActivity : AppCompatActivity() {
 
         binding.nextBtn.setOnClickListener {
             if(binding.pager.currentItem == 2){
-                val intent = Intent(this,HomeActivity::class.java)
+                val intent = Intent(this, HomeActivity::class.java)
                 startActivity(intent)
             }
             else{

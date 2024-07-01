@@ -10,8 +10,11 @@ import android.view.View
 import java.time.DayOfWeek
 import java.time.Month
 import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.*
+
+val format = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
 class OnSingleClickListener(
     private var interval: Int = 600,

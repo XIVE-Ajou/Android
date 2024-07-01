@@ -30,10 +30,10 @@
             android:name=".NetworkErrorActivity"
             android:exported="false" />
         <activity
-            android:name=".home.WebviewActivity"
+            android:name=".home.view.WebviewActivity"
             android:exported="false" />
         <activity
-            android:name=".home.HomeActivity"
+            android:name=".home.view.HomeActivity"
             android:exported="false"
             android:launchMode="singleTop">
             <intent-filter>
@@ -49,7 +49,7 @@
                 android:resource="@xml/tech_list" />
         </activity>
         <activity
-            android:name=".home.CalendarActivity"
+            android:name=".home.view.CalendarActivity"
             android:exported="false" />
         <activity
             android:name=".onboarding.view.OnBoardingActivity"

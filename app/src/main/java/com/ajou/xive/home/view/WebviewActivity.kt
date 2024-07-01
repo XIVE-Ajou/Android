@@ -1,4 +1,4 @@
-package com.ajou.xive.home
+package com.ajou.xive.home.view
 
 import android.app.PendingIntent
 import android.content.Intent

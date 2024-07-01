@@ -1,4 +1,4 @@
-package com.ajou.xive.home
+package com.ajou.xive.home.view
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -7,29 +7,31 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.view.children
+import androidx.activity.viewModels
 import com.ajou.xive.R
 import com.ajou.xive.UserDataStore
 import com.ajou.xive.databinding.ActivityCalendarBinding
 import com.ajou.xive.databinding.CalendarDayBinding
 import com.kizitonwose.calendar.view.MonthDayBinder
-import com.kizitonwose.calendar.view.MonthHeaderFooterBinder
 import com.kizitonwose.calendar.view.ViewContainer
 import java.time.LocalDate
 import java.time.YearMonth
 import com.ajou.xive.displayText
+import com.ajou.xive.format
+import com.ajou.xive.home.ScheduleViewModel
 import com.ajou.xive.home.model.Schedule
+import com.ajou.xive.home.view.fragment.CalendarBottomSheetFragment
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.SchedulesService
 import com.bumptech.glide.Glide
 import com.kizitonwose.calendar.core.*
 import kotlinx.coroutines.*
 import java.time.DayOfWeek
-import java.time.format.DateTimeFormatter
 
 class CalendarActivity : AppCompatActivity() {
     private var _binding: ActivityCalendarBinding? = null
     private val binding get() = _binding!!
+    private val viewModel : ScheduleViewModel by viewModels()
 
     private val schedulesService = RetrofitInstance.getInstance().create(SchedulesService::class.java)
     private var selectedDate = LocalDate.now()
@@ -41,7 +43,7 @@ class CalendarActivity : AppCompatActivity() {
     private val dataStore = UserDataStore()
     private var schedulesList : List<Schedule> = emptyList()
     private var isFirst = true
-    private val format = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    private val daysOfWeek = daysOfWeek(firstDayOfWeek = DayOfWeek.MONDAY)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,24 +76,37 @@ class CalendarActivity : AppCompatActivity() {
             override fun create(view: View): DayViewContainer = DayViewContainer(view)
         }
 
-        val daysOfWeek = daysOfWeek(firstDayOfWeek = DayOfWeek.MONDAY)
-
         binding.calendar.monthScrollListener = { updateTitle() }
         binding.calendar.setup(startMonth, endMonth, daysOfWeek.first())
         binding.calendar.scrollToMonth(currentMonth)
-        binding.calendar.monthHeaderBinder = object : MonthHeaderFooterBinder<MonthViewContainer> {
-            override fun bind(container: MonthViewContainer, data: CalendarMonth) {
-                if (container.titlesContainer.tag == null) {
-                    container.titlesContainer.tag = data.yearMonth
-                    container.titlesContainer.children.map { it as TextView }
-                        .forEachIndexed { index, textView ->
-                            textView.text = daysOfWeek[index].displayText()
-                            textView.setTextColor(resources.getColor(R.color.black))
-                        }
+
+        for ((index, dayText) in daysOfWeek.withIndex()) {
+            val dayLayout = binding.dayWeek.getChildAt(index)
+            if (dayLayout!=null){
+                val textView: TextView? = dayLayout.findViewById(R.id.dayWeekText)
+                if (textView != null) {
+                    textView.text = dayText.displayText()
+                    if (selectedDate.dayOfWeek == daysOfWeek[index]) {
+                        textView.setTextColor(getColor(R.color.primary))
+                    }
                 }
             }
-            override fun create(view: View): MonthViewContainer = MonthViewContainer(view)
         }
+//        binding.calendar.monthHeaderBinder = object : MonthHeaderFooterBinder<MonthViewContainer> {
+//            override fun bind(container: MonthViewContainer, data: CalendarMonth) {
+//                if (container.titlesContainer.tag == null) {
+//                    container.titlesContainer.tag = data.yearMonth
+//                    container.titlesContainer.children.map { it as TextView }
+//                        .forEachIndexed { index, textView ->
+//                            textView.text = daysOfWeek[index].displayText()
+//                            if (selectedDate.dayOfWeek == daysOfWeek[index]) {
+//                                textView.setTextColor(getColor(R.color.primary))
+//                            }
+//                        }
+//                }
+//            }
+//            override fun create(view: View): MonthViewContainer = MonthViewContainer(view)
+//        }
 
         binding.monthPlus.setOnClickListener {
             val prevMonth = binding.calendar.findFirstVisibleMonth()?.yearMonth
@@ -125,10 +140,25 @@ class CalendarActivity : AppCompatActivity() {
     private fun dateClicked(date: LocalDate) {
         isFirst = false
         binding.calendar.notifyDateChanged(selectedDate) // 이전 선택값 해제
+        for (i in 0..6){
+            if (selectedDate.dayOfWeek == daysOfWeek[i]) {
+                binding.dayWeek.getChildAt(i).findViewById<TextView>(R.id.dayWeekText).setTextColor(getColor(R.color.gray100))
+            }
+            else if (date.dayOfWeek == daysOfWeek[i]) {
+                binding.dayWeek.getChildAt(i).findViewById<TextView>(R.id.dayWeekText).setTextColor(getColor(R.color.primary))
+            }
+        }
+
         selectedDate = date
         binding.calendar.notifyDateChanged(date) // 새로운 선택값
-        
-        // TODO 선택된 날짜의 요일의 색상도 primary 값으로 변경
+
+        val element = schedulesList.find { LocalDate.parse(it.eventDay, format) == date }
+        if (element != null) {
+            viewModel.setSchedules(element)
+            val dialog = CalendarBottomSheetFragment()
+            dialog.show(supportFragmentManager, "schedule")
+        }
+
         // TODO 이미지가 있는 값일 경우 bottomsheet 띄워야함
     }
 
@@ -160,7 +190,6 @@ class CalendarActivity : AppCompatActivity() {
             }
             when {
                 date == selectedDate -> {
-                    // TODO 해당 날짜가 scheduleList의 eventDay 중에 있다면 ?
                     if (img.visibility == View.VISIBLE) {
                         imgBg.visibility = View.VISIBLE
                     } else {

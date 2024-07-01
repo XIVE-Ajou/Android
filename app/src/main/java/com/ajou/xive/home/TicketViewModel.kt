@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ajou.xive.NetworkErrorActivity
 import com.ajou.xive.UserDataStore
+import com.ajou.xive.home.model.Schedule
 import com.ajou.xive.home.model.Ticket
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.TicketService
@@ -61,7 +62,6 @@ class TicketViewModel : ViewModel() {
                     _type.value = "update"
                     _ticketList.value = ticketListResponse.body()!!.data as MutableList<Ticket>
                 }
-                // viewmodel로 데이터 담아서 담아오는 속도 빠르게 하기
             }else{
                 Log.d("ticketresponse fail",ticketListResponse.errorBody()?.string().toString())
             }
@@ -82,6 +82,5 @@ class TicketViewModel : ViewModel() {
     fun setType(data: String){
         _type.postValue(data)
     }
-
 
 }
