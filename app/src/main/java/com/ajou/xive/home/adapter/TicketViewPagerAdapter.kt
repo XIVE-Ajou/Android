@@ -24,13 +24,6 @@ class TicketViewPagerAdapter(val context : Context, var list: List<Ticket>, val 
             binding.ticket.setOnClickListener {
                 link.getSelectedTicketUrl(data.eventWebUrl)
             }
-
-            binding.ticket.setOnLongClickListener {
-                link.getSelectedTicketId(data.ticketId,bindingAdapterPosition)
-                return@setOnLongClickListener(true)
-
-            }
-
         }
     }
 
@@ -58,16 +51,6 @@ class TicketViewPagerAdapter(val context : Context, var list: List<Ticket>, val 
     fun addToList(newList: List<Ticket>){
         list = newList
         this.notifyItemInserted(list.size-1)
-    }
-
-    fun removeAtList(newList: List<Ticket>){
-        Log.d("remove newList",newList.toString())
-        Log.d("remove originList",list.toString())
-        Log.d("remove adapter item count", itemCount.toString())
-//        list = newList
-//        this.notifyItemRemoved(position)
-//        notifyItemRangeChanged(position, list.size)
-        this.notifyDataSetChanged()
     }
 
 }

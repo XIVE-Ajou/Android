@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.viewModels
+import androidx.lifecycle.Observer
 import com.ajou.xive.R
 import com.ajou.xive.UserDataStore
 import com.ajou.xive.databinding.ActivityCalendarBinding
@@ -32,17 +33,12 @@ class CalendarActivity : AppCompatActivity() {
     private var _binding: ActivityCalendarBinding? = null
     private val binding get() = _binding!!
     private val viewModel : ScheduleViewModel by viewModels()
-
-    private val schedulesService = RetrofitInstance.getInstance().create(SchedulesService::class.java)
     private var selectedDate = LocalDate.now()
     private var currentMonth = YearMonth.now()
     private val startMonth = YearMonth.of(2024, 1) // 2024년 1월부터 제공
     private val endMonth = currentMonth  // 현재는 다음 달이 필요 없어서 endMonth와 currentMonth가 동일
-    private lateinit var accessToken : String
-    private lateinit var refreshToken : String
-    private val dataStore = UserDataStore()
-    private var schedulesList : List<Schedule> = emptyList()
     private var isFirst = true
+    private var isEdit = false
     private val daysOfWeek = daysOfWeek(firstDayOfWeek = DayOfWeek.MONDAY)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,48 +76,35 @@ class CalendarActivity : AppCompatActivity() {
         binding.calendar.setup(startMonth, endMonth, daysOfWeek.first())
         binding.calendar.scrollToMonth(currentMonth)
 
-        for ((index, dayText) in daysOfWeek.withIndex()) {
-            val dayLayout = binding.dayWeek.getChildAt(index)
-            if (dayLayout!=null){
-                val textView: TextView? = dayLayout.findViewById(R.id.dayWeekText)
-                if (textView != null) {
-                    textView.text = dayText.displayText()
-                    if (selectedDate.dayOfWeek == daysOfWeek[index]) {
-                        textView.setTextColor(getColor(R.color.primary))
-                    }
-                }
-            }
-        }
-//        binding.calendar.monthHeaderBinder = object : MonthHeaderFooterBinder<MonthViewContainer> {
-//            override fun bind(container: MonthViewContainer, data: CalendarMonth) {
-//                if (container.titlesContainer.tag == null) {
-//                    container.titlesContainer.tag = data.yearMonth
-//                    container.titlesContainer.children.map { it as TextView }
-//                        .forEachIndexed { index, textView ->
-//                            textView.text = daysOfWeek[index].displayText()
-//                            if (selectedDate.dayOfWeek == daysOfWeek[index]) {
-//                                textView.setTextColor(getColor(R.color.primary))
-//                            }
-//                        }
-//                }
-//            }
-//            override fun create(view: View): MonthViewContainer = MonthViewContainer(view)
-//        }
-
         binding.monthPlus.setOnClickListener {
             val prevMonth = binding.calendar.findFirstVisibleMonth()?.yearMonth
             val month = prevMonth!!.plusMonths(1)
             binding.calendar.smoothScrollToMonth(month)
         }
+
         binding.monthMinus.setOnClickListener {
             val prevMonth = binding.calendar.findFirstVisibleMonth()?.yearMonth
             val month = prevMonth!!.minusMonths(1)
             binding.calendar.smoothScrollToMonth(month)
         }
-    }
 
-    class MonthViewContainer(view: View) : ViewContainer(view) {
-        val titlesContainer = view as ViewGroup
+        viewModel.scheduleList.observe(this, Observer {
+            if (viewModel.scheduleList.value!!.isNotEmpty()){
+                binding.calendar.post {
+                    viewModel.scheduleList.value!!.map { binding.calendar.notifyDateChanged(LocalDate.parse(it.eventDay, format)) }
+                }
+            }
+        })
+
+        viewModel.scheduleTickets.observe(this, Observer {
+            if (viewModel.selectedDate.value != null) {
+                val element = viewModel.scheduleTickets.value!!.find { it.eventDay == viewModel.selectedDate.value }
+                if (element == null) { // 완전히 사라졌을 때만 처리가능.. -> 여러 개의 티켓이 있고 하나를 삭제했을 때는 숫자 변경 X
+                    isEdit = true
+                    binding.calendar.notifyDateChanged(LocalDate.parse(viewModel.selectedDate.value, format))
+                }
+            }
+        })
     }
 
     private fun updateTitle() {
@@ -129,12 +112,36 @@ class CalendarActivity : AppCompatActivity() {
         val month = binding.calendar.findFirstVisibleMonth()?.yearMonth ?: return
         val year = month.year.toString() +"년"
         currentMonth = month
-        getMonthSchedules()
+        viewModel.getMonthSchedules(currentMonth)
         binding.year.text = year
         binding.month.text = month.month.displayText(short = false)
         binding.monthMinus.isEnabled = month > startMonth
         binding.monthPlus.isEnabled = month < endMonth
+        updateDayWeekColor()
+    }
 
+    private fun updateDayWeekColor() {
+        val today = LocalDate.now()
+        if (today == selectedDate && "${today.monthValue}월" == binding.month.text) {
+            for ((index, dayText) in daysOfWeek.withIndex()) {
+                val dayLayout = binding.dayWeek.getChildAt(index)
+                if (dayLayout!=null){
+                    val textView: TextView? = dayLayout.findViewById(R.id.dayWeekText)
+                    if (textView != null) {
+                        textView.text = dayText.displayText()
+                        if (selectedDate.dayOfWeek == daysOfWeek[index]) {
+                            textView.setTextColor(getColor(R.color.primary))
+                        } else {
+                            textView.setTextColor(getColor(R.color.gray100))
+                        }
+                    }
+                }
+            }
+        } else {
+            for (i in 0..6) {
+                binding.dayWeek.getChildAt(i).findViewById<TextView>(R.id.dayWeekText).setTextColor(getColor(R.color.gray100))
+            }
+        }
     }
 
     private fun dateClicked(date: LocalDate) {
@@ -152,41 +159,46 @@ class CalendarActivity : AppCompatActivity() {
         selectedDate = date
         binding.calendar.notifyDateChanged(date) // 새로운 선택값
 
-        val element = schedulesList.find { LocalDate.parse(it.eventDay, format) == date }
+        val element = viewModel.scheduleList.value!!.find { LocalDate.parse(it.eventDay, format) == date }
         if (element != null) {
             viewModel.setSchedules(element)
+            viewModel.setSelectedDate(element.eventDay)
             val dialog = CalendarBottomSheetFragment()
             dialog.show(supportFragmentManager, "schedule")
+        } else {
+            viewModel.setSelectedDate(null)
         }
-
-        // TODO 이미지가 있는 값일 경우 bottomsheet 띄워야함
     }
 
     private fun bindDate(date: LocalDate, dayText: TextView, dayBg: ImageView, img: ImageView, imgBg: ImageView, ticketCount: TextView, ticketCountBg: View, isSelectable: Boolean) {
         dayText.text = date.dayOfMonth.toString()
         if (isSelectable) {
-            if (isFirst) {
-                val element = schedulesList.find { LocalDate.parse(it.eventDay, format) == date }
+            if (isFirst || isEdit) {
+                val element = viewModel.scheduleList.value!!.find { LocalDate.parse(it.eventDay, format) == date }
+//                Log.d("bindDate isEdit element",element.toString())
                 if (element != null){
                     img.visibility = View.VISIBLE
                     if (element.eventImageUrl != null && LocalDate.parse(element.eventDay, format) == date){
                         Glide.with(this)
                             .load(element.eventImageUrl)
+                            .centerCrop()
                             .into(img)
                         if (element.ticketId.size > 1){
                             ticketCount.text = element.ticketId.size.toString()
                             ticketCountBg.visibility = View.VISIBLE
                             ticketCount.visibility = View.VISIBLE
-                        } else {
+                        } else if (element.ticketId.size == 1) {
                             ticketCount.visibility = View.GONE
                             ticketCountBg.visibility = View.GONE
                         }
                     }
                 } else {
                     img.visibility = View.GONE
+                    imgBg.visibility = View.GONE
                     ticketCount.visibility = View.GONE
                     ticketCountBg.visibility = View.GONE
                 }
+                isEdit = false
             }
             when {
                 date == selectedDate -> {
@@ -210,24 +222,6 @@ class CalendarActivity : AppCompatActivity() {
             dayText.setTextColor(resources.getColor(R.color.gray100))
             dayBg.background = null
             imgBg.visibility = View.GONE
-        }
-    }
-
-    private fun getMonthSchedules() {
-        CoroutineScope(Dispatchers.IO).launch {
-            accessToken = dataStore.getAccessToken().toString()
-            refreshToken = dataStore.getRefreshToken().toString()
-            val scheduleDeferred = async { schedulesService.getMonthSchedules(accessToken, refreshToken,currentMonth.toString()) }
-            val scheduleResponse = scheduleDeferred.await()
-            if (scheduleResponse.isSuccessful) {
-                Log.d("scheduleResponse", scheduleResponse.body()?.data.toString())
-                schedulesList = scheduleResponse.body()?.data!!
-                withContext(Dispatchers.Main) {
-                    binding.calendar.post {
-                        schedulesList.map { binding.calendar.notifyDateChanged(LocalDate.parse(it.eventDay, format)) }
-                    }
-                }
-            }
         }
     }
 }

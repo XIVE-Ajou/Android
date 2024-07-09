@@ -114,7 +114,6 @@ class WebviewActivity : AppCompatActivity() {
             val record = recs[i]
             if (Arrays.equals(record.type, NdefRecord.RTD_TEXT)) {
                 val text = byteArrayToStringWithNDEF(record.payload)
-                Log.d("text",text)
 //                getDecryptionTicket(url)
             } else if (Arrays.equals(record.type, NdefRecord.RTD_URI)) {
                 val url = record.toUri().toString()

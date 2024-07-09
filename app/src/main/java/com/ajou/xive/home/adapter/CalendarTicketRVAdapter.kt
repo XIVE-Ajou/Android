@@ -5,11 +5,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.ajou.xive.DataSelection
 import com.ajou.xive.databinding.ItemCalendarEventBinding
 import com.ajou.xive.home.model.Ticket
 import com.bumptech.glide.Glide
 
-class CalendarTicketRVAdapter(val context: Context, var list: MutableList<Ticket>): RecyclerView.Adapter<CalendarTicketRVAdapter.ViewHolder>() {
+class CalendarTicketRVAdapter(val context: Context, var list: List<Ticket>, val link: DataSelection): RecyclerView.Adapter<CalendarTicketRVAdapter.ViewHolder>() {
 
     inner class ViewHolder(val binding: ItemCalendarEventBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(data:Ticket){
@@ -44,14 +45,15 @@ class CalendarTicketRVAdapter(val context: Context, var list: MutableList<Ticket
     }
 
     fun updateList(newList: List<Ticket>) {
-        list = newList as MutableList<Ticket>
+        list = newList
         notifyDataSetChanged()
     }
 
     fun removeItem(index: Int){
-        Log.d("remove originList",list.toString())
-        Log.d("remove adapter item count", itemCount.toString())
-        list.removeAt(index)
+        val tmpList : MutableList<Ticket> = list.toList().toMutableList()
+        tmpList.removeAt(index)
+        link.getSelectedTicketId(list[index].ticketId,index)
+        list = tmpList
         notifyItemRemoved(index)
     }
 }

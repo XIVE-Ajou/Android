@@ -12,9 +12,7 @@ import com.ajou.xive.home.model.Schedule
 import com.ajou.xive.home.model.Ticket
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.TicketService
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class TicketViewModel : ViewModel() {
     private val ticketService = RetrofitInstance.getInstance().create(TicketService::class.java)
@@ -47,25 +45,7 @@ class TicketViewModel : ViewModel() {
         isError.value = true
     }
     init {
-        viewModelScope.launch(exceptionHandler) {
-            accessToken = dataStore.getAccessToken().toString()
-            refreshToken = dataStore.getRefreshToken().toString()
-            val ticketListDeferred =
-                async { ticketService.getAllTickets(accessToken!!, refreshToken!!) }
-            val ticketListResponse = ticketListDeferred.await()
-
-            if (ticketListResponse.isSuccessful) {
-                Log.d("viewmodel membership", ticketListResponse.body()?.data.toString())
-                if (ticketListResponse.body()?.data!!.isEmpty()) _hasTicket.value = false
-                else {
-                    _hasTicket.value = true
-                    _type.value = "update"
-                    _ticketList.value = ticketListResponse.body()!!.data as MutableList<Ticket>
-                }
-            }else{
-                Log.d("ticketresponse fail",ticketListResponse.errorBody()?.string().toString())
-            }
-        }
+        getUsersTicket()
     }
     fun setNfcUrl(data : String) {
         _nfcUrl.postValue(data)
@@ -83,4 +63,28 @@ class TicketViewModel : ViewModel() {
         _type.postValue(data)
     }
 
+    fun deleteTicket(index: Int) {
+        _ticketList.value?.removeAt(index)
+    }
+
+    fun getUsersTicket(){
+        viewModelScope.launch(exceptionHandler) {
+            accessToken = dataStore.getAccessToken().toString()
+            refreshToken = dataStore.getRefreshToken().toString()
+            val ticketListDeferred =
+                async { ticketService.getAllTickets(accessToken!!, refreshToken!!) }
+            val ticketListResponse = ticketListDeferred.await()
+
+            if (ticketListResponse.isSuccessful) {
+                if (ticketListResponse.body()?.data!!.isEmpty()) _hasTicket.value = false
+                else {
+                    _hasTicket.value = true
+                    _type.value = "update"
+                    _ticketList.value = ticketListResponse.body()!!.data as MutableList<Ticket>
+                }
+            }else{
+                Log.d("ticketresponse fail",ticketListResponse.errorBody()?.string().toString())
+            }
+        }
+    }
 }

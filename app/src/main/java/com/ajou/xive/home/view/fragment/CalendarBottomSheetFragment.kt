@@ -9,32 +9,40 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.datastore.dataStore
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.ajou.xive.R
-import com.ajou.xive.SwipeDeleteCallback
+import com.ajou.xive.*
 import com.ajou.xive.databinding.FragmentCalendarBottomSheetBinding
-import com.ajou.xive.format
 import com.ajou.xive.home.ScheduleViewModel
+import com.ajou.xive.home.TicketViewModel
 import com.ajou.xive.home.adapter.CalendarTicketRVAdapter
+import com.ajou.xive.network.RetrofitInstance
+import com.ajou.xive.network.api.TicketService
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
-class CalendarBottomSheetFragment : BottomSheetDialogFragment() {
+class CalendarBottomSheetFragment : BottomSheetDialogFragment(), DataSelection {
     private var mContext : Context? = null
     private var _binding : FragmentCalendarBottomSheetBinding? = null
     private val binding get() = _binding!!
     private lateinit var viewModel : ScheduleViewModel
     private lateinit var adapter : CalendarTicketRVAdapter
+    private val dataStore = UserDataStore()
+    private val ticketService = RetrofitInstance.getInstance().create(TicketService::class.java)
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
         mContext = context
-        adapter = CalendarTicketRVAdapter(mContext!!, mutableListOf())
+        adapter = CalendarTicketRVAdapter(mContext!!, mutableListOf(),this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,9 +92,12 @@ class CalendarBottomSheetFragment : BottomSheetDialogFragment() {
             bottomSheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet) as View
         val behavior = BottomSheetBehavior.from<View>(bottomSheet)
         val layoutParams = bottomSheet!!.layoutParams
-        layoutParams.height = getBottomSheetDialogDefaultHeight()
-        bottomSheet.layoutParams = layoutParams
+        layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+
+        behavior.peekHeight = getBottomSheetDialogDefaultHeight()
         behavior.state = BottomSheetBehavior.STATE_COLLAPSED
+
+        bottomSheet.layoutParams = bottomSheet.layoutParams
     }
 
     private fun getBottomSheetDialogDefaultHeight(): Int {
@@ -101,5 +112,26 @@ class CalendarBottomSheetFragment : BottomSheetDialogFragment() {
     override fun onPause() {
         super.onPause()
         dialog?.dismiss()
+    }
+
+    override fun getSelectedTicketId(id: Int, position: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val accessToken = dataStore.getAccessToken()
+            val refreshToken = dataStore.getRefreshToken()
+            val deleteDeferred =
+                async { ticketService.deleteTicket(accessToken!!, refreshToken!!, id.toString()) }
+            val deleteResponse = deleteDeferred.await()
+            if (deleteResponse.isSuccessful) {
+                if (viewModel.scheduleTickets.value!!.size == 1 ){
+                    dialog?.dismiss()
+                }
+                viewModel.deleteSchedule(position)
+            } else {
+                Log.d("deleteResponse fail", deleteResponse.errorBody()?.string().toString())
+            }
+        }
+    }
+
+    override fun getSelectedTicketUrl(url: String) {
     }
 }

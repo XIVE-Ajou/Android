@@ -2,6 +2,7 @@ package com.ajou.xive
 
 import android.graphics.*
 import android.graphics.drawable.Drawable
+import android.util.Log
 import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
@@ -13,7 +14,7 @@ class SwipeBackground {
 
         private const val THRESHOLD = 2.5
 
-        private const val OFFSET_PX = 25
+        private const val OFFSET_PX = 25.0f
 
         @JvmStatic
         fun paintDrawCommandToStart(canvas: Canvas, viewItem: View, @DrawableRes iconResId: Int, backgroundColor: Int, dX: Float) {
@@ -30,7 +31,6 @@ class SwipeBackground {
             val backgroundColor = getBackgroundColor(backgroundColor, R.color.error, dX, viewItem)
             return DrawCommand(icon, backgroundColor)
         }
-        // TODO backgroundColor 관련해서 필요없는 부분 삭제하기
 
         private fun getBackgroundColor(firstColor: Int, secondColor: Int, dX: Float, viewItem: View): Int {
             return when (willActionBeTriggered(dX, viewItem.width)) {
@@ -38,19 +38,20 @@ class SwipeBackground {
                 false -> ContextCompat.getColor(viewItem.context, secondColor)
             }
         }
+        // TODO firstColor와 secondColor가 같은데, getBackgroundColor함수를 호출하지 않으면 왜 색이 달라지는지?
 
         private fun paintDrawCommand(drawCommand: DrawCommand, canvas: Canvas, dX: Float, viewItem: View) {
             drawBackground(canvas, viewItem, dX, drawCommand.backgroundColor)
-            drawIcon(canvas, viewItem, dX, drawCommand.icon)
+            drawIcon(canvas, viewItem, drawCommand.icon)
         }
 
-        private fun drawIcon(canvas: Canvas, viewItem: View, dX: Float, icon: Drawable) {
+        private fun drawIcon(canvas: Canvas, viewItem: View, icon: Drawable) {
             val topMargin = calculateTopMargin(icon, viewItem)
-            icon.bounds = getStartContainerRectangle(viewItem, icon.intrinsicWidth, topMargin, OFFSET_PX, dX)
+            icon.bounds = getStartContainerRectangle(viewItem, icon.intrinsicWidth, topMargin, dpToPx(viewItem.context, OFFSET_PX).toInt() )
             icon.draw(canvas)
         }
 
-        private fun getStartContainerRectangle(viewItem: View, iconWidth: Int, topMargin: Int, sideOffset: Int, dx: Float): Rect {
+        private fun getStartContainerRectangle(viewItem: View, iconWidth: Int, topMargin: Int, sideOffset: Int): Rect {
             val leftBound = viewItem.right - iconWidth - sideOffset
             val rightBound = viewItem.right - sideOffset
             val topBound = viewItem.top + topMargin

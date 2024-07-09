@@ -1,11 +1,13 @@
 package com.ajou.xive
 
+import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.os.SystemClock
 import android.text.Layout
 import android.text.style.LeadingMarginSpan
 import android.util.Log
+import android.util.TypedValue
 import android.view.View
 import java.time.DayOfWeek
 import java.time.Month
@@ -101,4 +103,8 @@ class IndentLeadingMarginSpan(
     companion object {
         private val INDENT_DELIMITERS = listOf("·", "ㆍ", "-", "•","•")
     }
+}
+
+fun dpToPx(context: Context, dp: Float): Float {
+    return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.resources.displayMetrics)
 }

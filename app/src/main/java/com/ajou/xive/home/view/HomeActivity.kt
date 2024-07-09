@@ -132,16 +132,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 "update" -> {
                     adapter.updateList(viewModel.ticketList.value!!)
                 }
-                else -> {
-                    adapter.removeAtList(viewModel.ticketList.value!!)
-                    if (viewModel.ticketList.value!!.size == 0) {
-                        binding.bgImg.setImageDrawable(null)
-                        binding.indicator.visibility = View.INVISIBLE
-                        binding.nullLogo.visibility = View.VISIBLE
-                        binding.nullText1.visibility = View.VISIBLE
-                        binding.nullText3.visibility = View.VISIBLE
-                    }
-                }
             }
         })
 
@@ -156,7 +146,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         CoroutineScope(Dispatchers.IO).launch {
             accessToken = dataStore.getAccessToken().toString()
             refreshToken = dataStore.getRefreshToken().toString()
-            Log.d("token ","accessToken : $accessToken  refreshToken: $refreshToken")
         }
         val text = "Add+\nSmart ticket"
         val spannable = SpannableStringBuilder(text)
@@ -219,7 +208,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 super.onPageSelected(position)
                 if (viewModel.ticketList.value!!.isNotEmpty()) {
                     Glide.with(this@HomeActivity)
-                        .load(R.drawable.ticket_bg)
+                        .load(viewModel.ticketList.value!![position].eventImageUrl)
                         .apply(multiOptions)
                         .into(binding.bgImg)
                 }
@@ -229,6 +218,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
 
     override fun onResume() {
         super.onResume()
+        viewModel.getUsersTicket()
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,
