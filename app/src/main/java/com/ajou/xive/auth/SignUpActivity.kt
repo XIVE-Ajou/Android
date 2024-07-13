@@ -2,24 +2,15 @@ package com.ajou.xive.auth
 
 import android.content.ContentValues
 import android.content.Intent
-import android.graphics.Paint
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.text.Html
-import android.text.SpannableString
-import android.text.style.UnderlineSpan
 import android.util.Log
-import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
-import com.ajou.xive.R
 import com.ajou.xive.UserDataStore
 import com.ajou.xive.databinding.ActivitySignUpBinding
-import com.ajou.xive.home.HomeActivity
+import com.ajou.xive.home.view.HomeActivity
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.UserService
 import com.ajou.xive.onboarding.view.OnBoardingActivity

@@ -3,48 +3,47 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@drawable/bottom_dialog_bg"
-    tools:context=".home.view.fragment.NfcTaggingBottomSheetFragment">
+    android:layout_height="match_parent"
+    android:background="@drawable/calendar_bottomsheet_bg"
+    tools:context=".home.view.fragment.CalendarBottomSheetFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <TextView
-            android:id="@+id/textView4"
+            android:id="@+id/date"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="스캔 준비 완료"
+            android:letterSpacing="-0.02"
             android:textColor="@color/black"
             android:textSize="20sp"
+            android:gravity="center"
+            android:layout_margin="16dp"
             android:textStyle="bold"
-            android:layout_marginTop="24dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/closeBtn"
-            android:layout_width="wrap_content"
+            android:id="@+id/division"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:src="@drawable/all_close"
-            android:layout_marginEnd="24dp"
-            app:layout_constraintBottom_toBottomOf="@+id/textView4"
-            app:layout_constraintEnd_toEndOf="@+id/textView4"
-            app:layout_constraintTop_toTopOf="@+id/textView4" />
+            android:background="@drawable/line"
+            android:layout_marginTop="16dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/date"/>
 
-        <ImageView
-            android:id="@+id/gif"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/ticketRV"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            app:layout_constraintDimensionRatio="1:1"
-            android:src="@drawable/nfc_guide_animation"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView4" />
+            app:layout_constraintTop_toBottomOf="@+id/division" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

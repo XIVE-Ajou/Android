@@ -1,6 +1,5 @@
 package com.ajou.xive.network.api
 
-import com.ajou.xive.network.model.NFCData
 import com.ajou.xive.network.model.NFCResponse
 import okhttp3.RequestBody
 import retrofit2.Response

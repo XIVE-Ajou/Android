@@ -1,4 +1,4 @@
-package com.ajou.xive.home
+package com.ajou.xive.home.view.fragment
 
 import android.app.Activity
 import android.app.Dialog

@@ -1,15 +1,13 @@
-package com.ajou.xive.home
+package com.ajou.xive.home.view
 
 import android.app.PendingIntent
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.Rect
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
 import android.nfc.NfcAdapter
 import android.os.*
+import android.provider.Settings.ACTION_NFC_SETTINGS
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
@@ -25,18 +23,19 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.ajou.xive.*
 import com.ajou.xive.databinding.ActivityHomeBinding
+import com.ajou.xive.home.TicketViewModel
+import com.ajou.xive.home.adapter.TicketViewPagerAdapter
 import com.ajou.xive.home.model.Ticket
 import com.ajou.xive.network.NFCRetrofitInstance
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.NFCService
 import com.ajou.xive.network.api.TicketService
-import com.ajou.xive.network.model.NFCData
+import com.ajou.xive.home.model.NFCData
+import com.ajou.xive.home.view.fragment.NfcTaggingBottomSheetFragment
 import com.ajou.xive.setting.SettingActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.FitCenter
 import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.google.gson.JsonObject
 import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.coroutines.*
@@ -47,6 +46,7 @@ import java.util.*
 class HomeActivity : AppCompatActivity(), DataSelection {
     private var _binding: ActivityHomeBinding? = null
     private val binding get() = _binding!!
+
     private val dataStore = UserDataStore()
     private val viewModel: TicketViewModel by viewModels()
     private val ticketService = RetrofitInstance.getInstance().create(TicketService::class.java)
@@ -75,8 +75,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             override fun run() {
                 super.run()
                 binding.nfcBtn.startAnimation(anim)
-                handler.postDelayed(this, 1500) // 100 쉬고 동작 -> 100 사이에 화면 처리
-
+                handler.postDelayed(this, 1500)
             }
         }
 
@@ -85,8 +84,13 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         }
 
         binding.nfcBtn.setOnClickListener {
-            val dialog = NfcTaggingBottomSheetFragment()
-            dialog.show(supportFragmentManager, dialog.tag)
+            if (nfcAdapter!!.isEnabled) {
+                val dialog = NfcTaggingBottomSheetFragment()
+                dialog.show(supportFragmentManager, dialog.tag)
+            } else {
+                val intent = Intent(ACTION_NFC_SETTINGS)
+                startActivity(intent)
+            }
         }
 
         binding.setting.setOnClickListener {
@@ -132,16 +136,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 }
                 "update" -> {
                     adapter.updateList(viewModel.ticketList.value!!)
-                }
-                else -> {
-                    adapter.removeAtList(viewModel.ticketList.value!!)
-                    if (viewModel.ticketList.value!!.size == 0) {
-                        binding.bgImg.setImageDrawable(null)
-                        binding.indicator.visibility = View.INVISIBLE
-                        binding.nullLogo.visibility = View.VISIBLE
-                        binding.nullText1.visibility = View.VISIBLE
-                        binding.nullText3.visibility = View.VISIBLE
-                    }
                 }
             }
         })
@@ -219,7 +213,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 super.onPageSelected(position)
                 if (viewModel.ticketList.value!!.isNotEmpty()) {
                     Glide.with(this@HomeActivity)
-                        .load(R.drawable.ticket_bg)
+                        .load(viewModel.ticketList.value!![position].eventImageUrl)
                         .apply(multiOptions)
                         .into(binding.bgImg)
                 }
@@ -229,6 +223,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
 
     override fun onResume() {
         super.onResume()
+        viewModel.getUsersTicket()
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,
@@ -268,7 +263,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         }
     }
 
-    fun byteArrayToStringWithNDEF(byteArray: ByteArray): String {
+    private fun byteArrayToStringWithNDEF(byteArray: ByteArray): String {
         if (byteArray.isEmpty()) {
             return ""
         }

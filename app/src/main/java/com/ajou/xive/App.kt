@@ -6,6 +6,7 @@ import android.util.Log
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.kakao.sdk.common.KakaoSdk
 import com.kakao.sdk.common.util.Utility
+import java.io.File
 
 class App : Application() {
 
@@ -24,6 +25,9 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         KakaoSdk.init(this, BuildConfig.NATIVE_API_KEY)
+
+        val dexOutputDir: File = codeCacheDir
+        dexOutputDir.setReadOnly()
 
     }
 }

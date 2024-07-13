@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.fragment.app.Fragment
@@ -20,7 +19,7 @@ import com.ajou.xive.BuildConfig
 import com.ajou.xive.R
 import com.ajou.xive.UserDataStore
 import com.ajou.xive.databinding.FragmentSettingBinding
-import com.ajou.xive.home.HomeActivity
+import com.ajou.xive.home.view.HomeActivity
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.UserService
 import com.google.gson.JsonObject

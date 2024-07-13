@@ -1,4 +1,4 @@
-package com.ajou.xive.network.model
+package com.ajou.xive.home.model
 
 data class NFCData(
     val eventId: Int,
