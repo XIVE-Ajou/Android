@@ -9,7 +9,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.datastore.dataStore
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -17,7 +16,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.ajou.xive.*
 import com.ajou.xive.databinding.FragmentCalendarBottomSheetBinding
 import com.ajou.xive.home.ScheduleViewModel
-import com.ajou.xive.home.TicketViewModel
 import com.ajou.xive.home.adapter.CalendarTicketRVAdapter
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.TicketService

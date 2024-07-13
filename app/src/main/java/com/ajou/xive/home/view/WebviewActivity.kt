@@ -11,15 +11,21 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.webkit.*
+import com.ajou.xive.UserDataStore
 import com.ajou.xive.databinding.ActivityWebviewBinding
 import com.bumptech.glide.load.resource.bitmap.FitCenter
 import com.bumptech.glide.request.RequestOptions
 import jp.wasabeef.glide.transformations.BlurTransformation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
 class WebviewActivity : AppCompatActivity() {
     private var _binding : ActivityWebviewBinding? = null
     private val binding get() = _binding!!
+    private val dataStore = UserDataStore()
 
     var nfcAdapter: NfcAdapter? = null
     val multiOptions = RequestOptions().transform(
@@ -34,15 +40,28 @@ class WebviewActivity : AppCompatActivity() {
             super.onBackPressed()
         }
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityWebviewBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
-
         val url = intent.getStringExtra("url")
         WebView.setWebContentsDebuggingEnabled(true)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val accessToken = dataStore.getAccessToken().toString()
+            val refreshToken = dataStore.getRefreshToken().toString()
+            withContext(Dispatchers.Main) {
+                binding.webview.evaluateJavascript("registerTicket($accessToken, $refreshToken)",null)
+                binding.webview.webViewClient = WebViewClient()
+                binding.webview.webChromeClient = WebChromeClient()
+
+                binding.webview.loadUrl(url!!)
+            }
+        }
+
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this)
 
         binding.webview.clearCache(true)
         binding.webview.clearHistory()
@@ -62,7 +81,6 @@ class WebviewActivity : AppCompatActivity() {
             loadWithOverviewMode = true
 
             useWideViewPort = true
-
         }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
             binding.webview.settings.databasePath = "/data/data/" + binding.webview.context.packageName + "/databases/";
@@ -70,11 +88,6 @@ class WebviewActivity : AppCompatActivity() {
         WebView.setWebContentsDebuggingEnabled(true)
         binding.webview.setLayerType(View.LAYER_TYPE_HARDWARE, null)
         binding.webview.setNetworkAvailable(true)
-
-        binding.webview.webViewClient = WebViewClient()
-        binding.webview.webChromeClient = WebChromeClient()
-
-        binding.webview.loadUrl(url!!)
 
         binding.backBtn.setOnClickListener {
             finish()

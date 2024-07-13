@@ -17,12 +17,12 @@ def manifest_native_app_key = properties.getProperty('manifest_native_app_key')
 
 android {
     namespace 'com.ajou.xive'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.ajou.xive"
-        minSdk 24
-        targetSdk 33
+        minSdk 26
+        targetSdk 34
         versionCode 5
         versionName "1.0.4"
 
@@ -120,6 +120,8 @@ dependencies {
     implementation("com.google.firebase:firebase-crashlytics")
     implementation("com.google.firebase:firebase-analytics")
 
+//    // splash screen
+//    implementation 'androidx.core:core-splashscreen:1.0.1'
 
 
 

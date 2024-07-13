@@ -21,6 +21,9 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
+
+//        installSplashScreen()
+
         _binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
 

@@ -2,15 +2,12 @@ package com.ajou.xive.home.view
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.lifecycle.Observer
 import com.ajou.xive.R
-import com.ajou.xive.UserDataStore
 import com.ajou.xive.databinding.ActivityCalendarBinding
 import com.ajou.xive.databinding.CalendarDayBinding
 import com.kizitonwose.calendar.view.MonthDayBinder
@@ -20,13 +17,9 @@ import java.time.YearMonth
 import com.ajou.xive.displayText
 import com.ajou.xive.format
 import com.ajou.xive.home.ScheduleViewModel
-import com.ajou.xive.home.model.Schedule
 import com.ajou.xive.home.view.fragment.CalendarBottomSheetFragment
-import com.ajou.xive.network.RetrofitInstance
-import com.ajou.xive.network.api.SchedulesService
 import com.bumptech.glide.Glide
 import com.kizitonwose.calendar.core.*
-import kotlinx.coroutines.*
 import java.time.DayOfWeek
 
 class CalendarActivity : AppCompatActivity() {
@@ -173,32 +166,54 @@ class CalendarActivity : AppCompatActivity() {
     private fun bindDate(date: LocalDate, dayText: TextView, dayBg: ImageView, img: ImageView, imgBg: ImageView, ticketCount: TextView, ticketCountBg: View, isSelectable: Boolean) {
         dayText.text = date.dayOfMonth.toString()
         if (isSelectable) {
-            if (isFirst || isEdit) {
-                val element = viewModel.scheduleList.value!!.find { LocalDate.parse(it.eventDay, format) == date }
-//                Log.d("bindDate isEdit element",element.toString())
-                if (element != null){
-                    img.visibility = View.VISIBLE
-                    if (element.eventImageUrl != null && LocalDate.parse(element.eventDay, format) == date){
-                        Glide.with(this)
-                            .load(element.eventImageUrl)
-                            .centerCrop()
-                            .into(img)
-                        if (element.ticketId.size > 1){
-                            ticketCount.text = element.ticketId.size.toString()
-                            ticketCountBg.visibility = View.VISIBLE
-                            ticketCount.visibility = View.VISIBLE
-                        } else if (element.ticketId.size == 1) {
-                            ticketCount.visibility = View.GONE
-                            ticketCountBg.visibility = View.GONE
-                        }
+//            if (isFirst || isEdit) {
+//                val element = viewModel.scheduleList.value!!.find { LocalDate.parse(it.eventDay, format) == date }
+//                if (element != null){
+//                    img.visibility = View.VISIBLE
+//                    if (element.eventImageUrl != null && LocalDate.parse(element.eventDay, format) == date){
+//                        Glide.with(this)
+//                            .load(element.eventImageUrl)
+//                            .centerCrop()
+//                            .into(img)
+//                        if (element.ticketId.size > 1){
+//                            ticketCount.text = element.ticketId.size.toString()
+//                            ticketCountBg.visibility = View.VISIBLE
+//                            ticketCount.visibility = View.VISIBLE
+//                        } else if (element.ticketId.size == 1) {
+//                            ticketCount.visibility = View.GONE
+//                            ticketCountBg.visibility = View.GONE
+//                        }
+//                    }
+//                } else {
+//                    img.visibility = View.GONE
+//                    imgBg.visibility = View.GONE
+//                    ticketCount.visibility = View.GONE
+//                    ticketCountBg.visibility = View.GONE
+//                }
+//                isEdit = false
+//            }
+            val element = viewModel.scheduleList.value!!.find { LocalDate.parse(it.eventDay, format) == date }
+            if (element != null){
+                img.visibility = View.VISIBLE
+                if (element.eventImageUrl != null && LocalDate.parse(element.eventDay, format) == date){
+                    Glide.with(this)
+                        .load(element.eventImageUrl)
+                        .centerCrop()
+                        .into(img)
+                    if (element.ticketId.size > 1){
+                        ticketCount.text = element.ticketId.size.toString()
+                        ticketCountBg.visibility = View.VISIBLE
+                        ticketCount.visibility = View.VISIBLE
+                    } else if (element.ticketId.size == 1) {
+                        ticketCount.visibility = View.GONE
+                        ticketCountBg.visibility = View.GONE
                     }
-                } else {
-                    img.visibility = View.GONE
-                    imgBg.visibility = View.GONE
-                    ticketCount.visibility = View.GONE
-                    ticketCountBg.visibility = View.GONE
                 }
-                isEdit = false
+            } else {
+                img.visibility = View.GONE
+                imgBg.visibility = View.GONE
+                ticketCount.visibility = View.GONE
+                ticketCountBg.visibility = View.GONE
             }
             when {
                 date == selectedDate -> {

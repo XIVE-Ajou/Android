@@ -7,6 +7,7 @@ import android.nfc.NdefMessage
 import android.nfc.NdefRecord
 import android.nfc.NfcAdapter
 import android.os.*
+import android.provider.Settings.ACTION_NFC_SETTINGS
 import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
@@ -75,7 +76,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 super.run()
                 binding.nfcBtn.startAnimation(anim)
                 handler.postDelayed(this, 1500)
-
             }
         }
 
@@ -84,8 +84,13 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         }
 
         binding.nfcBtn.setOnClickListener {
-            val dialog = NfcTaggingBottomSheetFragment()
-            dialog.show(supportFragmentManager, dialog.tag)
+            if (nfcAdapter!!.isEnabled) {
+                val dialog = NfcTaggingBottomSheetFragment()
+                dialog.show(supportFragmentManager, dialog.tag)
+            } else {
+                val intent = Intent(ACTION_NFC_SETTINGS)
+                startActivity(intent)
+            }
         }
 
         binding.setting.setOnClickListener {
