@@ -2,6 +2,7 @@ package com.ajou.xive.home.view
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Rect
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
@@ -34,8 +35,11 @@ import com.ajou.xive.home.model.NFCData
 import com.ajou.xive.home.view.fragment.NfcTaggingBottomSheetFragment
 import com.ajou.xive.setting.SettingActivity
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.FitCenter
 import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.gson.JsonObject
 import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.coroutines.*
@@ -88,6 +92,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 val dialog = NfcTaggingBottomSheetFragment()
                 dialog.show(supportFragmentManager, dialog.tag)
             } else {
+                Toast.makeText(this, "NFC 일반모드를 켜주세요",Toast.LENGTH_SHORT).show()
                 val intent = Intent(ACTION_NFC_SETTINGS)
                 startActivity(intent)
             }
@@ -128,8 +133,9 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                         binding.nullText1.visibility = View.GONE
                         binding.nullText3.visibility = View.GONE
                         Glide.with(this@HomeActivity)
-                            .load(R.drawable.ticket_bg)
+                            .load(viewModel.ticketList.value!![viewModel.ticketList.value!!.size].eventImageUrl)
                             .apply(multiOptions)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(binding.bgImg)
                         binding.bgImg.visibility = View.VISIBLE
                     }
@@ -213,9 +219,20 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 super.onPageSelected(position)
                 if (viewModel.ticketList.value!!.isNotEmpty()) {
                     Glide.with(this@HomeActivity)
+                        .asBitmap()
                         .load(viewModel.ticketList.value!![position].eventImageUrl)
                         .apply(multiOptions)
-                        .into(binding.bgImg)
+//                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+//                        .skipMemoryCache(true)
+                        .dontAnimate()
+                        .into(object : SimpleTarget<Bitmap>() {
+                            override fun onResourceReady(
+                                resource: Bitmap,
+                                transition: Transition<in Bitmap>?
+                            ) {
+                                binding.bgImg.setImageBitmap(resource)
+                            }
+                        })
                 }
             }
         })

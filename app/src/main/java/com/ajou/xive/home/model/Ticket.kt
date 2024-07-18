@@ -3,6 +3,7 @@ package com.ajou.xive.home.model
 data class Ticket(
     val isNew: Boolean,
     val ticketId: Int,
+    val eventId: Int,
     val eventName: String,
     val eventRound: String,
     val startDate: String,
