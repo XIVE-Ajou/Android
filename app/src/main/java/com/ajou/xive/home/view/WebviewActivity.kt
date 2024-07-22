@@ -14,6 +14,7 @@ import android.view.View
 import android.webkit.*
 import com.ajou.xive.UserDataStore
 import com.ajou.xive.databinding.ActivityWebviewBinding
+import com.ajou.xive.home.TicketViewModel
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.EventService
 import com.ajou.xive.network.api.StampService
@@ -103,9 +104,9 @@ class WebviewActivity : AppCompatActivity() {
                 binding.webview.webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
-//                        binding.webview.evaluateJavascript("javascript:testFunc('$accessToken','$refreshToken')",null)
-                        binding.webview.evaluateJavascript("javascript:stampInit('$stampImgJsonData')",null)
-                        binding.webview.evaluateJavascript("javascript:setStamp('$eventStampJsonData')",null)
+                        binding.webview.evaluateJavascript("javascript:testFunc('$accessToken','$refreshToken', ')",null)
+//                        binding.webview.evaluateJavascript("javascript:stampInit('$stampImgJsonData')",null)
+//                        binding.webview.evaluateJavascript("javascript:setStamp('$eventStampJsonData')",null)
                     }
                 }
                 binding.webview.webChromeClient = WebChromeClient()

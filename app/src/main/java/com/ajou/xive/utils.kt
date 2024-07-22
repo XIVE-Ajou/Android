@@ -1,6 +1,7 @@
 package com.ajou.xive
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.os.SystemClock
@@ -9,6 +10,8 @@ import android.text.style.LeadingMarginSpan
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
+import androidx.core.content.ContextCompat.startActivity
+import kotlinx.coroutines.CoroutineExceptionHandler
 import java.time.DayOfWeek
 import java.time.Month
 import java.time.YearMonth
@@ -107,4 +110,10 @@ class IndentLeadingMarginSpan(
 
 fun dpToPx(context: Context, dp: Float): Float {
     return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.resources.displayMetrics)
+}
+
+val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+    val intent = Intent(App.context(), NetworkErrorActivity::class.java)
+    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    App.context().startActivity(intent)
 }
