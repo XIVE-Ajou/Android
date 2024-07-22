@@ -33,41 +33,22 @@ class SplashActivity : AppCompatActivity() {
 
         Handler().postDelayed({
             CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
-                    accessToken = dataStore.getAccessToken()
-                    refreshToken = dataStore.getRefreshToken()
+                accessToken = dataStore.getAccessToken()
+                refreshToken = dataStore.getRefreshToken()
 
-                    withContext(Dispatchers.Main){
-                        if (accessToken != null && refreshToken != null){
-                            val intent = Intent(this@SplashActivity, HomeActivity::class.java)
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
-                            startActivity(intent)
-                        }else{
-                            val intent = Intent(this@SplashActivity, SignUpActivity::class.java)
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
-                            startActivity(intent)
-                        }
+                withContext(Dispatchers.Main) {
+                    if (accessToken != null && refreshToken != null) {
+                        val intent = Intent(this@SplashActivity, HomeActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+                        startActivity(intent)
+                    } else {
+                        val intent = Intent(this@SplashActivity, SignUpActivity::class.java)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+                        startActivity(intent)
                     }
-            }
-        },2000)
-    }
-
-    val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-
-        showErrorDialog()
-    }
-    private fun showErrorDialog() {
-        runOnUiThread {
-            AlertDialog.Builder(this).apply {
-                setTitle("Error")
-                setMessage("Network request failed.")
-                setPositiveButton("종료") { dialog, _ ->
-                    dialog.dismiss()
-                    finish()
                 }
-                setCancelable(false)
-                show()
             }
-        }
+        }, 2000)
     }
 
     override fun onStop() {

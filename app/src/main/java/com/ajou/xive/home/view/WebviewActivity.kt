@@ -2,6 +2,7 @@ package com.ajou.xive.home.view
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.graphics.Bitmap
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
 import android.nfc.NfcAdapter
@@ -13,25 +14,31 @@ import android.view.View
 import android.webkit.*
 import com.ajou.xive.UserDataStore
 import com.ajou.xive.databinding.ActivityWebviewBinding
+import com.ajou.xive.home.TicketViewModel
+import com.ajou.xive.network.RetrofitInstance
+import com.ajou.xive.network.api.EventService
+import com.ajou.xive.network.api.StampService
 import com.bumptech.glide.load.resource.bitmap.FitCenter
 import com.bumptech.glide.request.RequestOptions
 import jp.wasabeef.glide.transformations.BlurTransformation
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import org.json.JSONObject
+import retrofit2.create
 import java.util.*
 
 class WebviewActivity : AppCompatActivity() {
     private var _binding : ActivityWebviewBinding? = null
     private val binding get() = _binding!!
     private val dataStore = UserDataStore()
+    private val stampService = RetrofitInstance.getInstance().create(StampService::class.java)
+    private val eventService = RetrofitInstance.getInstance().create(EventService::class.java)
 
     var nfcAdapter: NfcAdapter? = null
-    val multiOptions = RequestOptions().transform(
-        FitCenter(),
-        BlurTransformation(10, 1)
-    )
+
+//    val multiOptions = RequestOptions().transform(
+//        FitCenter(),
+//        BlurTransformation(10, 1)
+//    )
 
     override fun onBackPressed() {
         if (binding.webview.canGoBack()) {
@@ -46,15 +53,62 @@ class WebviewActivity : AppCompatActivity() {
         _binding = ActivityWebviewBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val url = intent.getStringExtra("url")
+//        val url = intent.getStringExtra("url")
+        val url = "https://xive.co.kr/xive-test"
         WebView.setWebContentsDebuggingEnabled(true)
 
         CoroutineScope(Dispatchers.IO).launch {
             val accessToken = dataStore.getAccessToken().toString()
             val refreshToken = dataStore.getRefreshToken().toString()
+            Log.d("token check",accessToken.toString())
+            val stampImgDeferred = async { stampService.getInitStamp(accessToken, refreshToken, "6") }
+            val stampImgResponse = stampImgDeferred.await()
+            var stampImgJsonData : String = ""
+            var eventStampJsonData : String = ""
+            val eventStampsDeferred = async { stampService.getEventStamps(accessToken, refreshToken,"6") }
+            val eventStampResponse = eventStampsDeferred.await()
+
+            if (stampImgResponse.isSuccessful) {
+                stampImgJsonData = stampImgResponse.body()!!.string().replace("'", "\\'")
+                Log.d("stampImgJsonData",stampImgJsonData)
+            }
+            if (eventStampResponse.isSuccessful) {
+                eventStampJsonData = eventStampResponse.body()!!.string().replace("'", "\\'")
+                Log.d("eventStampJsonData",eventStampJsonData)
+            }
+
             withContext(Dispatchers.Main) {
-                binding.webview.evaluateJavascript("registerTicket($accessToken, $refreshToken)",null)
-                binding.webview.webViewClient = WebViewClient()
+                binding.webview.clearCache(true)
+                binding.webview.clearHistory()
+                binding.webview.clearFormData()
+
+                binding.webview.settings.apply {
+                    javaScriptEnabled = true
+                    domStorageEnabled = true
+                    javaScriptCanOpenWindowsAutomatically = false
+
+                    databaseEnabled = true
+
+                    cacheMode = WebSettings.LOAD_NO_CACHE
+
+                    allowContentAccess = true
+                    loadsImagesAutomatically = true
+                    loadWithOverviewMode = true
+
+                    useWideViewPort = true
+                }
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                    binding.webview.settings.databasePath = "/data/data/" + binding.webview.context.packageName + "/databases/";
+                }
+
+                binding.webview.webViewClient = object : WebViewClient() {
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                        binding.webview.evaluateJavascript("javascript:testFunc('$accessToken','$refreshToken', ')",null)
+//                        binding.webview.evaluateJavascript("javascript:stampInit('$stampImgJsonData')",null)
+//                        binding.webview.evaluateJavascript("javascript:setStamp('$eventStampJsonData')",null)
+                    }
+                }
                 binding.webview.webChromeClient = WebChromeClient()
 
                 binding.webview.loadUrl(url!!)
@@ -63,31 +117,6 @@ class WebviewActivity : AppCompatActivity() {
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
 
-        binding.webview.clearCache(true)
-        binding.webview.clearHistory()
-        binding.webview.clearFormData()
-
-        binding.webview.settings.apply {
-            javaScriptEnabled = true
-            domStorageEnabled = true
-            javaScriptCanOpenWindowsAutomatically = false
-
-            databaseEnabled = true
-
-            cacheMode = WebSettings.LOAD_NO_CACHE
-
-            allowContentAccess = true
-            loadsImagesAutomatically = true
-            loadWithOverviewMode = true
-
-            useWideViewPort = true
-        }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            binding.webview.settings.databasePath = "/data/data/" + binding.webview.context.packageName + "/databases/";
-        }
-        WebView.setWebContentsDebuggingEnabled(true)
-        binding.webview.setLayerType(View.LAYER_TYPE_HARDWARE, null)
-        binding.webview.setNetworkAvailable(true)
 
         binding.backBtn.setOnClickListener {
             finish()

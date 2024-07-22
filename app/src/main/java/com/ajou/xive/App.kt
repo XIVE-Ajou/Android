@@ -24,10 +24,13 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        KakaoSdk.init(this, BuildConfig.NATIVE_API_KEY)
 
         val dexOutputDir: File = codeCacheDir
         dexOutputDir.setReadOnly()
+
+        KakaoSdk.init(this, BuildConfig.NATIVE_API_KEY)
+
+
 
     }
 }

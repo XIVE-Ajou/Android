@@ -1,6 +1,6 @@
 package com.ajou.xive.home.model
 
-data class Ticket(
+data class ScheduleTicket(
     val isNew: Boolean,
     val ticketId: Int,
     val eventId: Int,
@@ -16,7 +16,5 @@ data class Ticket(
     val eventType: String,
     val eventPlace: String,
     val seatNumber: String,
-    val eventWebUrl: String,
-    val isXive : Boolean,
-    val isPurchase : Boolean
+    val eventWebUrl: String
 )

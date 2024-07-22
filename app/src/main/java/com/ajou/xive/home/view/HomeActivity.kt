@@ -2,6 +2,7 @@ package com.ajou.xive.home.view
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.Rect
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
@@ -32,15 +33,20 @@ import com.ajou.xive.network.api.NFCService
 import com.ajou.xive.network.api.TicketService
 import com.ajou.xive.home.model.NFCData
 import com.ajou.xive.home.view.fragment.NfcTaggingBottomSheetFragment
+import com.ajou.xive.network.api.EventService
 import com.ajou.xive.setting.SettingActivity
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.FitCenter
 import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.gson.JsonObject
 import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.coroutines.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
+import org.json.JSONObject
 import java.util.*
 
 class HomeActivity : AppCompatActivity(), DataSelection {
@@ -50,7 +56,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
     private val dataStore = UserDataStore()
     private val viewModel: TicketViewModel by viewModels()
     private val ticketService = RetrofitInstance.getInstance().create(TicketService::class.java)
-    private val nfcService = NFCRetrofitInstance.getInstance().create(NFCService::class.java)
+    private val eventService = RetrofitInstance.getInstance().create(EventService::class.java)
     private lateinit var accessToken: String
     private lateinit var refreshToken: String
     var state = 0
@@ -88,6 +94,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 val dialog = NfcTaggingBottomSheetFragment()
                 dialog.show(supportFragmentManager, dialog.tag)
             } else {
+                Toast.makeText(this, "NFC 일반모드를 켜주세요",Toast.LENGTH_SHORT).show()
                 val intent = Intent(ACTION_NFC_SETTINGS)
                 startActivity(intent)
             }
@@ -128,8 +135,9 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                         binding.nullText1.visibility = View.GONE
                         binding.nullText3.visibility = View.GONE
                         Glide.with(this@HomeActivity)
-                            .load(R.drawable.ticket_bg)
+                            .load(viewModel.ticketList.value!![viewModel.ticketList.value!!.size].eventImageUrl)
                             .apply(multiOptions)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .into(binding.bgImg)
                         binding.bgImg.visibility = View.VISIBLE
                     }
@@ -213,9 +221,20 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 super.onPageSelected(position)
                 if (viewModel.ticketList.value!!.isNotEmpty()) {
                     Glide.with(this@HomeActivity)
+                        .asBitmap()
                         .load(viewModel.ticketList.value!![position].eventImageUrl)
                         .apply(multiOptions)
-                        .into(binding.bgImg)
+//                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+//                        .skipMemoryCache(true)
+                        .dontAnimate()
+                        .into(object : SimpleTarget<Bitmap>() {
+                            override fun onResourceReady(
+                                resource: Bitmap,
+                                transition: Transition<in Bitmap>?
+                            ) {
+                                binding.bgImg.setImageBitmap(resource)
+                            }
+                        })
                 }
             }
         })
@@ -254,11 +273,11 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         for (i in recs.indices) {
             val record = recs[i]
             if (Arrays.equals(record.type, NdefRecord.RTD_TEXT)) {
-                val url = BuildConfig.BASE_NFC_URL + byteArrayToStringWithNDEF(record.payload)
-//                getDecryptionTicket(url)
+                val string = byteArrayToStringWithNDEF(record.payload)
+                getTicketEventId(string)
             } else if (Arrays.equals(record.type, NdefRecord.RTD_URI)) {
                 val url = record.toUri().toString()
-                getDecryptionTicket(url)
+//                getDecryptionTicket(url)
             }
         }
     }
@@ -283,28 +302,23 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         )
     }
 
-    private fun getDecryptionTicket(url: String) {
-        val splitUrl = "?nfc="
-        var originUrl = url.replace(splitUrl, "")
-        originUrl = originUrl.replace("https://", "")
-        CoroutineScope(Dispatchers.IO).launch {
-            val jsonObject = JsonObject().apply {
-                addProperty("url", originUrl)
-            }
-            val requestBody = RequestBody.create(
-                "application/json".toMediaTypeOrNull(),
-                jsonObject.toString()
-            )
-            val nfcDeferred = async { nfcService.postNFCTicket(requestBody) }
-            val nfcResponse = nfcDeferred.await()
-            if (nfcResponse.isSuccessful) {
-                val body = nfcResponse.body()
-                val data = NFCData(body!!.eventId.toInt(), body.nfcId.toInt(), body.seatNumber, url)
-                val postTicketDeferred =
-                    async { ticketService.postTicket(accessToken, refreshToken, data) }
-                val postTicketResponse = postTicketDeferred.await()
-                if (postTicketResponse.isSuccessful) {
-                    val body = postTicketResponse.body()!!
+    private fun getTicketEventId(token:String) {
+        CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
+            val eventIdDeferred = async { eventService.getEvent(accessToken, refreshToken, token) }
+            val eventIdResponse = eventIdDeferred.await()
+
+            if (eventIdResponse.isSuccessful) {
+                val body = JSONObject(eventIdResponse.body()?.string().toString())
+                val eventId = body.getInt("eventId")
+                val eventWebUrl = body.getString("eventWebUrl")
+                val jsonObject = JsonObject().apply {
+                    addProperty("eventId", eventId)
+                }
+                val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), jsonObject.toString())
+                val ticketDeferred = async { ticketService.postExhibitTicket(accessToken, refreshToken, requestBody) }
+                val ticketResponse = ticketDeferred.await()
+                if (ticketResponse.isSuccessful) {
+                    val body = ticketResponse.body()!!
                     if (body.isNew){
                         val list = mutableListOf<Ticket>()
                         viewModel.ticketList.value?.let { list.addAll(it) }
@@ -318,17 +332,12 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                             Toast.makeText(this@HomeActivity, "이미 등록된 티켓입니다",Toast.LENGTH_SHORT).show()
                         }
                     }
-
-                } else {
-                    Log.d(
-                        "postTicketResponse faill",
-                        postTicketResponse.errorBody()?.string().toString()
-                    )
+                } else{
+                    Log.d("ticketResponse fail",ticketResponse.errorBody()?.string().toString())
                 }
-            } else {
-                Log.d("nfcResponse fail", nfcResponse.errorBody()?.string().toString())
             }
         }
+
     }
 
     override fun getSelectedTicketId(id: Int, position: Int) {
