@@ -21,7 +21,6 @@ class UserDataStore() {
         val FIRST_FLAG = booleanPreferencesKey("first_flag")
         val ACCESS_TOKEN = stringPreferencesKey("access_token")
         val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
-        val LOGIN_TYPE = stringPreferencesKey("login_type")
         val NICKNAME = stringPreferencesKey("nickname")
     }
 
@@ -50,20 +49,6 @@ class UserDataStore() {
     suspend fun getRefreshToken():String? {
         return withContext(Dispatchers.IO) {
             dataStore.data.first()[PreferencesKeys.REFRESH_TOKEN]
-        }
-    }
-
-    suspend fun saveLoginType(type:String) {
-        withContext(Dispatchers.IO) {
-            dataStore.edit { pref ->
-                pref[PreferencesKeys.LOGIN_TYPE] = type
-            }
-        }
-    }
-
-    suspend fun getLoginType(): String? {
-        return withContext(Dispatchers.IO) {
-            dataStore.data.first()[PreferencesKeys.LOGIN_TYPE]
         }
     }
 

@@ -10,6 +10,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import com.ajou.xive.UserDataStore
 import com.ajou.xive.databinding.ActivitySignUpBinding
+import com.ajou.xive.exceptionHandler
 import com.ajou.xive.home.view.HomeActivity
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.UserService
@@ -38,8 +39,6 @@ class SignUpActivity : AppCompatActivity() {
 
 
         binding.loginBtn.setOnClickListener {
-//            val intent = Intent(this,KakaoSignUpActivity::class.java)
-//            startActivity(intent)
             kakaoLogin()
         }
 
@@ -59,13 +58,6 @@ class SignUpActivity : AppCompatActivity() {
                         val tokenBody = loginResponse.body()
                         dataStore.saveAccessToken(tokenBody!!.accessToken)
                         dataStore.saveRefreshToken(tokenBody.refreshToken)
-                        val getMemberInfoDeferred = async { userService.getMemberInfo(tokenBody.accessToken, tokenBody.refreshToken) }
-                        val getMemberInfoResponse = getMemberInfoDeferred.await()
-                        if (getMemberInfoResponse.isSuccessful) {
-                            val memberInfoBody = JSONObject(getMemberInfoResponse.body()?.string())
-                            dataStore.saveLoginType(memberInfoBody.getString("loginType"))
-                            dataStore.saveNickname(memberInfoBody.getString("nickname"))
-                        }
                         withContext(Dispatchers.Main){
                             if (tokenBody.isNew){
                                 val intent = Intent(this@SignUpActivity, OnBoardingActivity::class.java)
@@ -74,7 +66,6 @@ class SignUpActivity : AppCompatActivity() {
                                 val intent = Intent(this@SignUpActivity, HomeActivity::class.java)
                                 startActivity(intent)
                             }
-
                         }
                     }else{
                         Log.d("kakao login fail",loginResponse.errorBody()?.string().toString())
@@ -83,31 +74,6 @@ class SignUpActivity : AppCompatActivity() {
 
             }
         })
-
-        binding.nonMemBtn.setOnSingleClickListener {
-            CoroutineScope(Dispatchers.IO).launch(exceptionHandler){
-                val loginDeferred = async { userService.nonLogin() }
-                val loginResponse = loginDeferred.await()
-                if (loginResponse.isSuccessful){
-                    val tokenBody = loginResponse.body()
-                    dataStore.saveAccessToken(tokenBody!!.accessToken)
-                    dataStore.saveRefreshToken(tokenBody.refreshToken)
-                    val getMemberInfoDeferred = async { userService.getMemberInfo(tokenBody.accessToken, tokenBody.refreshToken) }
-                    val getMemberInfoResponse = getMemberInfoDeferred.await()
-                    if (getMemberInfoResponse.isSuccessful) {
-                        val memberInfoBody = JSONObject(getMemberInfoResponse.body()?.string())
-                        dataStore.saveLoginType(memberInfoBody.getString("loginType"))
-                        dataStore.saveNickname(memberInfoBody.getString("nickname"))
-                    }
-                    withContext(Dispatchers.Main){
-                        val intent = Intent(this@SignUpActivity, OnBoardingActivity::class.java)
-                        startActivity(intent)
-                    }
-                }else{
-                    Log.d("nonmember login fail",loginResponse.errorBody()?.string().toString())
-                }
-            }
-        }
     }
 
     private fun kakaoLogin(){
@@ -132,7 +98,6 @@ class SignUpActivity : AppCompatActivity() {
                         CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
                             dataStore.saveNickname(user?.kakaoAccount?.profile?.nickname.toString())
                             viewModel.setKakaoToken(token.accessToken)
-//                            dataStore.saveKakaoId(user?.id.toString())
                         }
                     }
                 }
@@ -162,22 +127,5 @@ class SignUpActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         finish()
-    }
-    val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-        showErrorDialog()
-    }
-    private fun showErrorDialog() {
-        runOnUiThread {
-            AlertDialog.Builder(this).apply {
-                setTitle("Error")
-                setMessage("Network request failed.")
-                setPositiveButton("종료") { dialog, _ ->
-                    dialog.dismiss()
-                    finish()
-                }
-                setCancelable(false)
-                show()
-            }
-        }
     }
 }

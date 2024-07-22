@@ -24,10 +24,10 @@
         android:layout_height="0dp"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="92dp"
         app:layout_constraintDimensionRatio="1:0.14"
         android:background="@drawable/login_kakaobackground"
-        app:layout_constraintBottom_toTopOf="@+id/nonMemBtn"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
@@ -53,17 +53,5 @@
         app:layout_constraintEnd_toEndOf="@+id/loginBtn"
         app:layout_constraintStart_toStartOf="@+id/loginBtn"
         app:layout_constraintTop_toTopOf="@+id/loginBtn" />
-    <TextView
-        android:id="@+id/nonMemBtn"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/non_member"
-        android:textColor="@color/gray100"
-        android:gravity="center"
-        android:paddingBottom="30dp"
-        android:layout_marginBottom="30dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

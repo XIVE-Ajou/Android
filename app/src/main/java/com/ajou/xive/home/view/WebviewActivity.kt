@@ -55,6 +55,7 @@ class WebviewActivity : AppCompatActivity() {
 
 //        val url = intent.getStringExtra("url")
         val url = "https://xive.co.kr/xive-test"
+        val eventId = intent.getStringExtra("eventId")
         WebView.setWebContentsDebuggingEnabled(true)
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -104,7 +105,8 @@ class WebviewActivity : AppCompatActivity() {
                 binding.webview.webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
-                        binding.webview.evaluateJavascript("javascript:testFunc('$accessToken','$refreshToken', ')",null)
+                        binding.webview.evaluateJavascript("javascript:initWeb('$accessToken','$refreshToken', '$eventId')",null)
+//                        binding.webview.evaluateJavascript("javascript:nfcTagging('$stampId')",null)
 //                        binding.webview.evaluateJavascript("javascript:stampInit('$stampImgJsonData')",null)
 //                        binding.webview.evaluateJavascript("javascript:setStamp('$eventStampJsonData')",null)
                     }
@@ -116,7 +118,6 @@ class WebviewActivity : AppCompatActivity() {
         }
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
-
 
         binding.backBtn.setOnClickListener {
             finish()
@@ -182,6 +183,10 @@ class WebviewActivity : AppCompatActivity() {
             byteArray.size - languageCodeLength - 1,
             Charsets.UTF_8
         )
+    }
+
+    private fun getStampId(token : String){
+
     }
 
 //    private fun getDecryptionTicket(url: String) {

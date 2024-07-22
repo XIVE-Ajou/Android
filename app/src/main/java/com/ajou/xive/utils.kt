@@ -1,5 +1,8 @@
 package com.ajou.xive
 
+import android.animation.Animator
+import android.animation.TimeInterpolator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Intent
 import android.graphics.Canvas
@@ -10,7 +13,9 @@ import android.text.style.LeadingMarginSpan
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.core.content.ContextCompat.startActivity
+import androidx.viewpager2.widget.ViewPager2
 import kotlinx.coroutines.CoroutineExceptionHandler
 import java.time.DayOfWeek
 import java.time.Month
@@ -113,7 +118,44 @@ fun dpToPx(context: Context, dp: Float): Float {
 }
 
 val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+    Log.d("exception",exception.message.toString())
     val intent = Intent(App.context(), NetworkErrorActivity::class.java)
     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
     App.context().startActivity(intent)
+}
+
+fun ViewPager2.setCurrentItemWithDuration(
+    item: Int,
+    duration: Long,
+    interpolator: TimeInterpolator = AccelerateDecelerateInterpolator(),
+    pagePxWidth: Int = width // Default value taken from getWidth() from ViewPager2 view
+) {
+    val pxToDrag: Int = pagePxWidth * (item - currentItem)
+    val animator = ValueAnimator.ofInt(0, pxToDrag)
+    var previousValue = 0
+    animator.addUpdateListener { valueAnimator ->
+        val currentValue = valueAnimator.animatedValue as Int
+        val currentPxToDrag = (currentValue - previousValue).toFloat()
+        fakeDragBy(-currentPxToDrag)
+        previousValue = currentValue
+    }
+
+    animator.addListener(object : Animator.AnimatorListener {
+        override fun onAnimationStart(p0: Animator) {
+            beginFakeDrag()
+        }
+
+        override fun onAnimationEnd(p0: Animator) {
+            endFakeDrag()
+        }
+
+        override fun onAnimationCancel(p0: Animator) {
+        }
+
+        override fun onAnimationRepeat(p0: Animator) {
+        }
+    })
+    animator.interpolator = interpolator
+    animator.duration = duration
+    animator.start()
 }

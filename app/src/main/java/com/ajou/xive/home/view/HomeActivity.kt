@@ -20,6 +20,8 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.whenResumed
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.ajou.xive.*
@@ -60,6 +62,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
     private lateinit var accessToken: String
     private lateinit var refreshToken: String
     var state = 0
+    var isScrolling = true
 
     var nfcAdapter: NfcAdapter? = null
     val multiOptions = RequestOptions().transform(
@@ -200,6 +203,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             }
         })
 
+
         binding.ticketVP.setPageTransformer { page, position ->
             val myOffset = position * -(5 * offsetBetweenPages)
             if (position < -1) {
@@ -216,17 +220,21 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             }
         }
 
+        autoSlide()
+
         binding.ticketVP.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 if (viewModel.ticketList.value!!.isNotEmpty()) {
+                    isScrolling = true
                     Glide.with(this@HomeActivity)
                         .asBitmap()
                         .load(viewModel.ticketList.value!![position].eventImageUrl)
                         .apply(multiOptions)
-//                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
 //                        .skipMemoryCache(true)
                         .dontAnimate()
+//                        .into(binding.bgImg)
                         .into(object : SimpleTarget<Bitmap>() {
                             override fun onResourceReady(
                                 resource: Bitmap,
@@ -237,20 +245,21 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                         })
                 }
             }
+
+            override fun onPageScrollStateChanged(state: Int) {
+                super.onPageScrollStateChanged(state)
+
+                if (state == ViewPager2.SCROLL_STATE_IDLE) {
+                    when(binding.ticketVP.currentItem) {
+                        viewModel.ticketList.value!!.size-1 -> {
+                            handler.postDelayed({
+                                binding.ticketVP.setCurrentItemWithDuration(0, 600)
+                            },4000)
+                        }
+                    }
+                }
+            }
         })
-    }
-
-    override fun onResume() {
-        super.onResume()
-        viewModel.getUsersTicket()
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
-        )
-        nfcAdapter?.enableForegroundDispatch(this, pendingIntent, null, null)
-
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -261,11 +270,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
 
             for (i in messages!!.indices) getNdefMsg(messages[i] as NdefMessage)
         }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (nfcAdapter != null) nfcAdapter?.disableForegroundDispatch(this)
     }
 
     private fun getNdefMsg(mMessage: NdefMessage) {
@@ -337,7 +341,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 }
             }
         }
-
     }
 
     override fun getSelectedTicketId(id: Int, position: Int) {
@@ -356,9 +359,10 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         }
     }
 
-    override fun getSelectedTicketUrl(url: String) {
+    override fun getSelectedTicketUrl(url: String, eventId: Int) {
         val intent = Intent(this, WebviewActivity::class.java)
         intent.putExtra("url", url)
+        intent.putExtra("eventId",eventId)
         startActivity(intent)
     }
 
@@ -370,5 +374,43 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         } else {
             handler.postDelayed(thread, 1500)
         }
+    }
+
+    private fun autoSlide(){
+        lifecycleScope.launch{
+            whenResumed {
+                while (isScrolling) {
+//                    if (viewModel.ticketList.value != null && binding.ticketVP.currentItem == viewModel.ticketList.value!!.size-1) {
+//                        delay(4000)
+//                        Log.d("autoSlide","slide true")
+//                        binding.ticketVP.setCurrentItem(0, true)
+//                    }
+                    delay(4000)
+                    binding.ticketVP.setCurrentItemWithDuration(binding.ticketVP.currentItem+1, 600)
+//                    binding.ticketVP.currentItem = binding.ticketVP.currentItem + 1
+
+                    Log.d("autoSlide","slide else")
+                }
+            }
+        }
+    }
+    override fun onResume() {
+        super.onResume()
+        viewModel.getUsersTicket()
+        isScrolling = true
+        val pendingIntent = PendingIntent.getActivity(
+            this,
+            0,
+            Intent(this, javaClass).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+        )
+        nfcAdapter?.enableForegroundDispatch(this, pendingIntent, null, null)
+
+    }
+
+    override fun onPause() {
+        super.onPause()
+        isScrolling = false
+        if (nfcAdapter != null) nfcAdapter?.disableForegroundDispatch(this)
     }
 }

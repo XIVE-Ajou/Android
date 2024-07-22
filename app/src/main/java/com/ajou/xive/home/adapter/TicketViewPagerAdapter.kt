@@ -22,7 +22,7 @@ class TicketViewPagerAdapter(val context : Context, var list: List<Ticket>, val 
                 .into(binding.img)
 
             binding.ticket.setOnClickListener {
-                link.getSelectedTicketUrl(data.eventWebUrl)
+                link.getSelectedTicketUrl(data.eventWebUrl, data.eventId)
             }
         }
     }
