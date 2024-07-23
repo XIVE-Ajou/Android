@@ -40,8 +40,10 @@ import com.ajou.xive.setting.SettingActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.bitmap.FitCenter
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.SimpleTarget
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.bumptech.glide.request.transition.Transition
 import com.google.gson.JsonObject
 import jp.wasabeef.glide.transformations.BlurTransformation
@@ -210,8 +212,9 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 page.translationX = -myOffset
             } else if (position <= 1) {
                 // Paging 시 Y축 Animation 배경색을 약간 연하게 처리
-                val scaleFactor = 0.8f.coerceAtLeast(1 - kotlin.math.abs(position))
+                val scaleFactor = 0.85f.coerceAtLeast(1 - kotlin.math.abs(position))
                 page.translationX = myOffset
+                page.scaleX = scaleFactor
                 page.scaleY = scaleFactor
                 page.alpha = scaleFactor
             } else {
@@ -221,17 +224,20 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         }
 
         autoSlide()
+        val factory = DrawableCrossFadeFactory.Builder(300).setCrossFadeEnabled(true).build()
 
         binding.ticketVP.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
                 if (viewModel.ticketList.value!!.isNotEmpty()) {
                     isScrolling = true
+                    binding.bgImg.alpha = 0.8f
                     Glide.with(this@HomeActivity)
                         .asBitmap()
                         .load(viewModel.ticketList.value!![position].eventImageUrl)
                         .apply(multiOptions)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
+//                        .transition(DrawableTransitionOptions.withCrossFade(factory))
 //                        .skipMemoryCache(true)
                         .dontAnimate()
 //                        .into(binding.bgImg)
@@ -240,7 +246,13 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                                 resource: Bitmap,
                                 transition: Transition<in Bitmap>?
                             ) {
+
                                 binding.bgImg.setImageBitmap(resource)
+
+                                binding.bgImg.animate()
+                                    .alpha(1f)
+                                    .setDuration(200)
+                                    .start()
                             }
                         })
                 }
@@ -380,16 +392,8 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         lifecycleScope.launch{
             whenResumed {
                 while (isScrolling) {
-//                    if (viewModel.ticketList.value != null && binding.ticketVP.currentItem == viewModel.ticketList.value!!.size-1) {
-//                        delay(4000)
-//                        Log.d("autoSlide","slide true")
-//                        binding.ticketVP.setCurrentItem(0, true)
-//                    }
                     delay(4000)
                     binding.ticketVP.setCurrentItemWithDuration(binding.ticketVP.currentItem+1, 600)
-//                    binding.ticketVP.currentItem = binding.ticketVP.currentItem + 1
-
-                    Log.d("autoSlide","slide else")
                 }
             }
         }

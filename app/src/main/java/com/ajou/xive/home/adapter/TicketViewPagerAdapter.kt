@@ -1,11 +1,13 @@
 package com.ajou.xive.home.adapter
 
 import android.content.Context
+import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.ajou.xive.DataSelection
+import com.ajou.xive.R
 import com.ajou.xive.databinding.ItemTicketBinding
 import com.ajou.xive.home.model.Ticket
 import com.bumptech.glide.Glide
@@ -24,6 +26,8 @@ class TicketViewPagerAdapter(val context : Context, var list: List<Ticket>, val 
             binding.ticket.setOnClickListener {
                 link.getSelectedTicketUrl(data.eventWebUrl, data.eventId)
             }
+
+//            binding.layout.setBackgroundColor(Color.RED)
         }
     }
 
