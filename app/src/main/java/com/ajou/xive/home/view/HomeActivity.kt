@@ -34,6 +34,7 @@ import com.ajou.xive.network.api.TicketService
 import com.ajou.xive.home.model.NFCData
 import com.ajou.xive.home.view.fragment.NfcTaggingBottomSheetFragment
 import com.ajou.xive.network.api.EventService
+import com.ajou.xive.network.api.StampService
 import com.ajou.xive.setting.SettingActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -57,6 +58,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
     private val viewModel: TicketViewModel by viewModels()
     private val ticketService = RetrofitInstance.getInstance().create(TicketService::class.java)
     private val eventService = RetrofitInstance.getInstance().create(EventService::class.java)
+    private val stampService = RetrofitInstance.getInstance().create(StampService::class.java)
     private lateinit var accessToken: String
     private lateinit var refreshToken: String
     var state = 0
@@ -273,11 +275,15 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         for (i in recs.indices) {
             val record = recs[i]
             if (Arrays.equals(record.type, NdefRecord.RTD_TEXT)) {
-                val string = byteArrayToStringWithNDEF(record.payload)
-                getTicketEventId(string)
-            } else if (Arrays.equals(record.type, NdefRecord.RTD_URI)) {
-                val url = record.toUri().toString()
-//                getDecryptionTicket(url)
+                var string = byteArrayToStringWithNDEF(record.payload)
+                if(string.startsWith("stamp:")){
+                    string = string.substring(6)
+                    getStampId(string)
+                }else if(string.startsWith("event:")){
+                    string = string.substring(6)
+                    getTicketEventId(string)
+                }
+
             }
         }
     }
@@ -337,7 +343,31 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 }
             }
         }
+    }
 
+    private fun getStampId(token:String) {
+        CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
+            val stampIdDeferred= async { stampService.getStampId(accessToken, refreshToken, token) }
+            val stampIdResponse = stampIdDeferred.await()
+
+            if (stampIdResponse.isSuccessful) {
+                val body = JSONObject(stampIdResponse.body()?.string().toString())
+                val stampId = body.getInt("stampId")
+                val jsonObject = JsonObject().apply {
+                    addProperty("stampId", stampId)
+                }
+                val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), jsonObject.toString())
+                val stampDeferred = async { stampService.postStamp(accessToken, refreshToken, requestBody) }
+                val stampResponse = stampDeferred.await()
+                if (stampResponse.isSuccessful) {
+                    Log.d("stampResponse success",stampIdResponse.body().toString())
+                } else{
+                    Log.d("ticketResponse fail",stampResponse.errorBody()?.string().toString())
+                }
+            } else {
+                Log.d("stampIdResponse fail",stampIdResponse.errorBody()?.string().toString())
+            }
+        }
     }
 
     override fun getSelectedTicketId(id: Int, position: Int) {
