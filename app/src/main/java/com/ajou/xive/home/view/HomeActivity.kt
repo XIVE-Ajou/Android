@@ -386,9 +386,17 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         }
     }
 
-    override fun getSelectedTicketUrl(url: String) {
+    override fun getSelectedTicketData(
+        url: String,
+        eventId: Int,
+        ticketId: Int,
+        isVisited: Boolean
+    ) {
         val intent = Intent(this, WebviewActivity::class.java)
         intent.putExtra("url", url)
+        intent.putExtra("eventId",eventId)
+        intent.putExtra("ticketId",ticketId)
+        intent.putExtra("isVisited",isVisited)
         startActivity(intent)
     }
 

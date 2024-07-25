@@ -3,5 +3,5 @@ package com.ajou.xive
 interface DataSelection {
     fun getSelectedTicketId(id:Int, position: Int)
 
-    fun getSelectedTicketUrl(url:String)
+    fun getSelectedTicketData(url:String, eventId: Int, ticketId: Int, isVisited: Boolean)
 }
