@@ -13,6 +13,7 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
 import android.util.Log
+import android.view.MotionEvent
 import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
@@ -261,17 +262,29 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             override fun onPageScrollStateChanged(state: Int) {
                 super.onPageScrollStateChanged(state)
 
-                if (state == ViewPager2.SCROLL_STATE_IDLE) {
+                if (state == ViewPager2.SCROLL_STATE_DRAGGING && isScrolling) {
                     when(binding.ticketVP.currentItem) {
                         viewModel.ticketList.value!!.size-1 -> {
                             handler.postDelayed({
-                                binding.ticketVP.setCurrentItemWithDuration(0, 600)
+                                                binding.ticketVP.setCurrentItem(0,false)
                             },4000)
                         }
                     }
                 }
             }
         })
+        binding.ticketVP.getChildAt(binding.ticketVP.currentItem).setOnTouchListener { view, event ->
+            view.performClick()
+            if(event.action == MotionEvent.ACTION_DOWN) {
+                if(isScrolling) isScrolling = false
+
+
+            } else if (event.action == MotionEvent.ACTION_UP){
+                if(!isScrolling) isScrolling = true
+
+            }
+            false
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -393,7 +406,10 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             whenResumed {
                 while (isScrolling) {
                     delay(4000)
-                    binding.ticketVP.setCurrentItemWithDuration(binding.ticketVP.currentItem+1, 600)
+                    if (binding.ticketVP.currentItem < viewModel.ticketList.value!!.size-1){
+                        binding.ticketVP.setCurrentItemWithDuration(binding.ticketVP.currentItem+1, 600)
+                        Log.d("viewpager2 scroll autoslide", binding.ticketVP.currentItem.toString())
+                    }
                 }
             }
         }
