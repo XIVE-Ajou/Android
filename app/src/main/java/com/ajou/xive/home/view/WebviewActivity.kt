@@ -1,5 +1,6 @@
 package com.ajou.xive.home.view
 
+import android.annotation.TargetApi
 import android.app.PendingIntent
 import android.content.Intent
 import android.graphics.Bitmap
@@ -9,19 +10,24 @@ import android.nfc.NfcAdapter
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Message
 import android.util.Log
 import android.view.View
 import android.webkit.*
 import com.ajou.xive.UserDataStore
 import com.ajou.xive.databinding.ActivityWebviewBinding
+import com.ajou.xive.exceptionHandler
 import com.ajou.xive.home.TicketViewModel
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.EventService
 import com.ajou.xive.network.api.StampService
 import com.bumptech.glide.load.resource.bitmap.FitCenter
 import com.bumptech.glide.request.RequestOptions
+import com.google.gson.JsonObject
 import jp.wasabeef.glide.transformations.BlurTransformation
 import kotlinx.coroutines.*
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody
 import org.json.JSONObject
 import retrofit2.create
 import java.util.*
@@ -34,11 +40,9 @@ class WebviewActivity : AppCompatActivity() {
     private val eventService = RetrofitInstance.getInstance().create(EventService::class.java)
 
     var nfcAdapter: NfcAdapter? = null
-
-//    val multiOptions = RequestOptions().transform(
-//        FitCenter(),
-//        BlurTransformation(10, 1)
-//    )
+    private var currentUrl = ""
+    private var accessToken : String = ""
+    private var refreshToken : String = ""
 
     override fun onBackPressed() {
         if (binding.webview.canGoBack()) {
@@ -53,29 +57,17 @@ class WebviewActivity : AppCompatActivity() {
         _binding = ActivityWebviewBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-//        val url = intent.getStringExtra("url")
-        val url = "https://xive.co.kr/xive-test"
+        val url = intent.getStringExtra("url")
+        val eventId = intent.getIntExtra("eventId",0)
+        val ticketId = intent.getIntExtra("ticketId", 0)
+        val isNewVisited = intent.getBooleanExtra("isNewVisited",false)
+
+//        val url = "https://xive.co.kr/xive-test"
         WebView.setWebContentsDebuggingEnabled(true)
 
         CoroutineScope(Dispatchers.IO).launch {
-            val accessToken = dataStore.getAccessToken().toString()
-            val refreshToken = dataStore.getRefreshToken().toString()
-            Log.d("token check",accessToken.toString())
-            val stampImgDeferred = async { stampService.getInitStamp(accessToken, refreshToken, "6") }
-            val stampImgResponse = stampImgDeferred.await()
-            var stampImgJsonData : String = ""
-            var eventStampJsonData : String = ""
-            val eventStampsDeferred = async { stampService.getEventStamps(accessToken, refreshToken,"6") }
-            val eventStampResponse = eventStampsDeferred.await()
-
-            if (stampImgResponse.isSuccessful) {
-                stampImgJsonData = stampImgResponse.body()!!.string().replace("'", "\\'")
-                Log.d("stampImgJsonData",stampImgJsonData)
-            }
-            if (eventStampResponse.isSuccessful) {
-                eventStampJsonData = eventStampResponse.body()!!.string().replace("'", "\\'")
-                Log.d("eventStampJsonData",eventStampJsonData)
-            }
+            accessToken = dataStore.getAccessToken().toString()
+            refreshToken = dataStore.getRefreshToken().toString()
 
             withContext(Dispatchers.Main) {
                 binding.webview.clearCache(true)
@@ -104,9 +96,14 @@ class WebviewActivity : AppCompatActivity() {
                 binding.webview.webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
-                        binding.webview.evaluateJavascript("javascript:testFunc('$accessToken','$refreshToken', ')",null)
-//                        binding.webview.evaluateJavascript("javascript:stampInit('$stampImgJsonData')",null)
-//                        binding.webview.evaluateJavascript("javascript:setStamp('$eventStampJsonData')",null)
+                        Log.d("check data webview","$eventId $ticketId $isNewVisited $accessToken $refreshToken")
+                        if (url!!.contains("/tickets")) {
+                            currentUrl = url
+                            binding.webview.evaluateJavascript("javascript:initWeb('$accessToken','$refreshToken',$eventId, $ticketId, $isNewVisited)",null)
+                        }
+                        else if (url.contains("/positive-sum")) {
+                            currentUrl = url
+                        }
                     }
                 }
                 binding.webview.webChromeClient = WebChromeClient()
@@ -155,8 +152,9 @@ class WebviewActivity : AppCompatActivity() {
         for (i in recs.indices) {
             val record = recs[i]
             if (Arrays.equals(record.type, NdefRecord.RTD_TEXT)) {
-                val text = byteArrayToStringWithNDEF(record.payload)
-//                getDecryptionTicket(url)
+                val token = byteArrayToStringWithNDEF(record.payload)
+                Log.d("getStampId 호출","")
+                getStampId(token)
             } else if (Arrays.equals(record.type, NdefRecord.RTD_URI)) {
                 val url = record.toUri().toString()
 //                getDecryptionTicket(url)
@@ -182,5 +180,40 @@ class WebviewActivity : AppCompatActivity() {
             byteArray.size - languageCodeLength - 1,
             Charsets.UTF_8
         )
+    }
+
+    private fun getStampId(token: String){
+        CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
+            Log.d("stamp test token", token)
+            val stampIdDeferred= async { stampService.getStampId(accessToken, refreshToken, token) }
+            val stampIdResponse = stampIdDeferred.await()
+
+            if (stampIdResponse.isSuccessful) {
+                val body = JSONObject(stampIdResponse.body()?.string().toString())
+                val stampId = body.getInt("stampId")
+                Log.d("stamp test stampId",stampId.toString())
+                if(currentUrl.contains("/positive-sum")){
+                    Log.d("stamp test in positive-sum","$stampId")
+                    withContext(Dispatchers.Main){
+                        binding.webview.evaluateJavascript("javascript:nfcTagging($stampId)",null)
+                    }
+                }else if(currentUrl.contains("/ticket")){
+                    Log.d("stamp test in ticket","$stampId")
+                    val jsonObject = JsonObject().apply {
+                        addProperty("stampId", stampId)
+                    }
+                    val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), jsonObject.toString())
+                    val stampDeferred = async { stampService.postStamp(accessToken, refreshToken, requestBody) }
+                    val stampResponse = stampDeferred.await()
+                    if (stampResponse.isSuccessful) {
+                        Log.d("stampResponse success",stampResponse.body().toString())
+                    } else{
+                        Log.d("stampResponse fail",stampResponse.errorBody()?.string().toString())
+                    }
+                }
+            } else {
+                Log.d("stampIdResponse fail",stampIdResponse.errorBody()?.string().toString())
+            }
+        }
     }
 }

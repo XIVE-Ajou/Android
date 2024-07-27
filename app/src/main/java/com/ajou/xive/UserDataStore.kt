@@ -1,6 +1,7 @@
 package com.ajou.xive
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -109,6 +110,7 @@ class UserDataStore() {
     suspend fun saveTicketVisitedJson(ticketVisitedFlags: List<TicketVisitedFlag>) {
         withContext(Dispatchers.IO) {
             val jsonString = Json.encodeToString(ticketVisitedFlags)
+            Log.d("check jsonString", jsonString)
             dataStore.edit { pref ->
                 pref[PreferencesKeys.TICKET_VISITED_JSON] = jsonString
             }
@@ -120,7 +122,7 @@ class UserDataStore() {
         withContext(Dispatchers.IO){
             dataStore.edit{ pref ->
                 val jsonString = pref[PreferencesKeys.TICKET_VISITED_JSON] ?: ""
-                if(jsonString == "") {
+                if(jsonString != "") {
                     list = Json.decodeFromString(jsonString)
                 }
             }
@@ -136,4 +138,21 @@ class UserDataStore() {
         }
     }
 
+    suspend fun deleteAllTicketVisitedJson() {
+        withContext(Dispatchers.IO) {
+            dataStore.edit { pref ->
+                pref.remove(PreferencesKeys.TICKET_VISITED_JSON)
+            }
+        }
+    }
+
+    suspend fun deleteTicketVisitedJson(ticketId : Int){
+        withContext(Dispatchers.IO) {
+            val ticketVisitedFlag = getTicketVisitedJson()
+            val jsonString = Json.encodeToString(ticketVisitedFlag.filterNot { it.ticketId == ticketId})
+            dataStore.edit { pref ->
+                pref[PreferencesKeys.TICKET_VISITED_JSON] = jsonString
+            }
+        }
+    }
 }

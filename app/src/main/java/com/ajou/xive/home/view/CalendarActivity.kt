@@ -166,32 +166,6 @@ class CalendarActivity : AppCompatActivity() {
     private fun bindDate(date: LocalDate, dayText: TextView, dayBg: ImageView, img: ImageView, imgBg: ImageView, ticketCount: TextView, ticketCountBg: View, isSelectable: Boolean) {
         dayText.text = date.dayOfMonth.toString()
         if (isSelectable) {
-//            if (isFirst || isEdit) {
-//                val element = viewModel.scheduleList.value!!.find { LocalDate.parse(it.eventDay, format) == date }
-//                if (element != null){
-//                    img.visibility = View.VISIBLE
-//                    if (element.eventImageUrl != null && LocalDate.parse(element.eventDay, format) == date){
-//                        Glide.with(this)
-//                            .load(element.eventImageUrl)
-//                            .centerCrop()
-//                            .into(img)
-//                        if (element.ticketId.size > 1){
-//                            ticketCount.text = element.ticketId.size.toString()
-//                            ticketCountBg.visibility = View.VISIBLE
-//                            ticketCount.visibility = View.VISIBLE
-//                        } else if (element.ticketId.size == 1) {
-//                            ticketCount.visibility = View.GONE
-//                            ticketCountBg.visibility = View.GONE
-//                        }
-//                    }
-//                } else {
-//                    img.visibility = View.GONE
-//                    imgBg.visibility = View.GONE
-//                    ticketCount.visibility = View.GONE
-//                    ticketCountBg.visibility = View.GONE
-//                }
-//                isEdit = false
-//            }
             val element = viewModel.scheduleList.value!!.find { LocalDate.parse(it.eventDay, format) == date }
             if (element != null){
                 img.visibility = View.VISIBLE

@@ -81,7 +81,8 @@ class TicketViewModel : ViewModel() {
                 else {
                     _hasTicket.value = true
                     _type.value = "update"
-                    _ticketList.value = ticketListResponse.body()!!.data as MutableList<Ticket>
+                    setTicketList(ticketListResponse.body()!!.data)
+//                    _ticketList.value =  as MutableList<Ticket>
                 }
             }else{
                 Log.d("ticketresponse fail",ticketListResponse.errorBody()?.string().toString())
