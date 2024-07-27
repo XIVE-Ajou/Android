@@ -133,8 +133,7 @@ class CalendarBottomSheetFragment : BottomSheetDialogFragment(), DataSelection {
     override fun getSelectedTicketData(
         url: String,
         eventId: Int,
-        ticketId: Int,
-        isVisited: Boolean
+        ticketId: Int
     ) {
     }
 

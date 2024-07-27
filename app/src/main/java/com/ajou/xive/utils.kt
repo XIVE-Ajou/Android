@@ -7,10 +7,8 @@ import android.graphics.Paint
 import android.os.SystemClock
 import android.text.Layout
 import android.text.style.LeadingMarginSpan
-import android.util.Log
 import android.util.TypedValue
 import android.view.View
-import androidx.core.content.ContextCompat.startActivity
 import kotlinx.coroutines.CoroutineExceptionHandler
 import java.time.DayOfWeek
 import java.time.Month

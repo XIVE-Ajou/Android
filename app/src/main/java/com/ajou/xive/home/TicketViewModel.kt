@@ -76,6 +76,7 @@ class TicketViewModel : ViewModel() {
             val ticketListResponse = ticketListDeferred.await()
 
             if (ticketListResponse.isSuccessful) {
+                Log.d("user all ticket",ticketListResponse.body().toString())
                 if (ticketListResponse.body()?.data!!.isEmpty()) _hasTicket.value = false
                 else {
                     _hasTicket.value = true

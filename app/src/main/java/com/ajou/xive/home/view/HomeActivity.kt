@@ -32,6 +32,7 @@ import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.NFCService
 import com.ajou.xive.network.api.TicketService
 import com.ajou.xive.home.model.NFCData
+import com.ajou.xive.home.model.TicketVisitedFlag
 import com.ajou.xive.home.view.fragment.NfcTaggingBottomSheetFragment
 import com.ajou.xive.network.api.EventService
 import com.ajou.xive.network.api.StampService
@@ -49,6 +50,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import org.json.JSONObject
 import java.util.*
+import kotlin.collections.ArrayList
 
 class HomeActivity : AppCompatActivity(), DataSelection {
     private var _binding: ActivityHomeBinding? = null
@@ -62,6 +64,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
     private lateinit var accessToken: String
     private lateinit var refreshToken: String
     var state = 0
+    private var ticketVisitedFlag : kotlin.collections.List<TicketVisitedFlag> = emptyList()
 
     var nfcAdapter: NfcAdapter? = null
     val multiOptions = RequestOptions().transform(
@@ -161,6 +164,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         CoroutineScope(Dispatchers.IO).launch {
             accessToken = dataStore.getAccessToken().toString()
             refreshToken = dataStore.getRefreshToken().toString()
+            ticketVisitedFlag = dataStore.getTicketVisitedJson()
         }
         val text = "Add+\nSmart ticket"
         val spannable = SpannableStringBuilder(text)
@@ -208,8 +212,9 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 page.translationX = -myOffset
             } else if (position <= 1) {
                 // Paging 시 Y축 Animation 배경색을 약간 연하게 처리
-                val scaleFactor = 0.8f.coerceAtLeast(1 - kotlin.math.abs(position))
+                val scaleFactor = 0.85f.coerceAtLeast(1 - kotlin.math.abs(position))
                 page.translationX = myOffset
+                page.scaleX = scaleFactor
                 page.scaleY = scaleFactor
                 page.alpha = scaleFactor
             } else {
@@ -276,11 +281,10 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             val record = recs[i]
             if (Arrays.equals(record.type, NdefRecord.RTD_TEXT)) {
                 var string = byteArrayToStringWithNDEF(record.payload)
+                Log.d("nfc tagging msg",string)
                 if(string.startsWith("stamp:")){
-                    string = string.substring(6)
                     getStampId(string)
                 }else if(string.startsWith("event:")){
-                    string = string.substring(6)
                     getTicketEventId(string)
                 }
 
@@ -329,6 +333,14 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                         val list = mutableListOf<Ticket>()
                         viewModel.ticketList.value?.let { list.addAll(it) }
                         list.add(body)
+
+                        val ticketVisitedFlagList : ArrayList<TicketVisitedFlag> = dataStore.getTicketVisitedJson() as ArrayList<TicketVisitedFlag>
+                        Log.d("check ticketVisitedFlag",ticketVisitedFlagList.toString())
+                        val obj = TicketVisitedFlag(body.ticketId, false)
+                        ticketVisitedFlagList.add(obj)
+                        Log.d("check ticketVisitedFlag added",ticketVisitedFlagList.toString())
+                        dataStore.saveTicketVisitedJson(ticketVisitedFlagList)
+
                         withContext(Dispatchers.Main) {
                             viewModel.setType("insert")
                             viewModel.setTicketList(list)
@@ -341,6 +353,8 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 } else{
                     Log.d("ticketResponse fail",ticketResponse.errorBody()?.string().toString())
                 }
+            } else {
+                Log.d("eventResponse fail",eventIdResponse.errorBody()?.string().toString())
             }
         }
     }
@@ -389,14 +403,15 @@ class HomeActivity : AppCompatActivity(), DataSelection {
     override fun getSelectedTicketData(
         url: String,
         eventId: Int,
-        ticketId: Int,
-        isVisited: Boolean
+        ticketId: Int
     ) {
+        val flag = ticketVisitedFlag.filter { it.ticketId == ticketId }
         val intent = Intent(this, WebviewActivity::class.java)
         intent.putExtra("url", url)
         intent.putExtra("eventId",eventId)
         intent.putExtra("ticketId",ticketId)
-        intent.putExtra("isVisited",isVisited)
+        if (flag.isEmpty()) intent.putExtra("isVisited", false)
+        else intent.putExtra("isVisited",flag[0].isVisited)
         startActivity(intent)
     }
 
