@@ -2,7 +2,7 @@ package com.ajou.xive.home.model
 
 data class Ticket(
     val isNew: Boolean,
-    val ticketId: Int,
+    var ticketId: Int,
     val eventId: Int,
     val eventName: String,
     val eventRound: String,
@@ -18,6 +18,5 @@ data class Ticket(
     val seatNumber: String,
     val eventWebUrl: String,
     val isXive : Boolean,
-    val isPurchase : Boolean,
-    val isVisited : Boolean = true // nfc 태그 후 최초 접근 여부 판별 플래그
+    val isPurchase : Boolean
 )

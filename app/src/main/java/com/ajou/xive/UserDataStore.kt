@@ -1,15 +1,23 @@
 package com.ajou.xive
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.ajou.xive.home.model.Ticket
+import com.ajou.xive.home.model.TicketVisitedFlag
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 private val Context.dataStore : DataStore<Preferences> by preferencesDataStore(name = "userData")
 
@@ -23,6 +31,7 @@ class UserDataStore() {
         val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
         val LOGIN_TYPE = stringPreferencesKey("login_type")
         val NICKNAME = stringPreferencesKey("nickname")
+        val TICKET_VISITED_JSON = stringPreferencesKey("ticket_visited_json")
     }
 
     suspend fun saveAccessToken(token : String) {
@@ -97,6 +106,30 @@ class UserDataStore() {
         }
         return flag
     }
+
+    suspend fun saveTicketVisitedJson(ticketVisitedFlags: List<TicketVisitedFlag>) {
+        withContext(Dispatchers.IO) {
+            val jsonString = Json.encodeToString(ticketVisitedFlags)
+            Log.d("check jsonString", jsonString)
+            dataStore.edit { pref ->
+                pref[PreferencesKeys.TICKET_VISITED_JSON] = jsonString
+            }
+        }
+    }
+
+    suspend fun getTicketVisitedJson(): List<TicketVisitedFlag> {
+        var list : List<TicketVisitedFlag> = emptyList()
+        withContext(Dispatchers.IO){
+            dataStore.edit{ pref ->
+                val jsonString = pref[PreferencesKeys.TICKET_VISITED_JSON] ?: ""
+                if(jsonString != "") {
+                    list = Json.decodeFromString(jsonString)
+                }
+            }
+        }
+        return list
+    }
+
     suspend fun deleteAll() {
         withContext(Dispatchers.IO) {
             dataStore.edit { pref ->
@@ -105,4 +138,21 @@ class UserDataStore() {
         }
     }
 
+    suspend fun deleteAllTicketVisitedJson() {
+        withContext(Dispatchers.IO) {
+            dataStore.edit { pref ->
+                pref.remove(PreferencesKeys.TICKET_VISITED_JSON)
+            }
+        }
+    }
+
+    suspend fun deleteTicketVisitedJson(ticketId : Int){
+        withContext(Dispatchers.IO) {
+            val ticketVisitedFlag = getTicketVisitedJson()
+            val jsonString = Json.encodeToString(ticketVisitedFlag.filterNot { it.ticketId == ticketId})
+            dataStore.edit { pref ->
+                pref[PreferencesKeys.TICKET_VISITED_JSON] = jsonString
+            }
+        }
+    }
 }

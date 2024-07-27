@@ -1,6 +1,7 @@
 package com.ajou.xive.home.adapter
 
 import android.content.Context
+import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -22,7 +23,7 @@ class TicketViewPagerAdapter(val context : Context, var list: List<Ticket>, val 
                 .into(binding.img)
 
             binding.ticket.setOnClickListener {
-                link.getSelectedTicketData(data.eventWebUrl, data.eventId, data.ticketId, data.isVisited)
+                link.getSelectedTicketData(data.eventWebUrl, data.eventId, data.ticketId)
             }
         }
     }

@@ -113,13 +113,15 @@ class CalendarBottomSheetFragment : BottomSheetDialogFragment(), DataSelection {
     }
 
     override fun getSelectedTicketId(id: Int, position: Int) {
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
             val accessToken = dataStore.getAccessToken()
             val refreshToken = dataStore.getRefreshToken()
             val deleteDeferred =
                 async { ticketService.deleteTicket(accessToken!!, refreshToken!!, id.toString()) }
             val deleteResponse = deleteDeferred.await()
             if (deleteResponse.isSuccessful) {
+                Log.d("check delete ticket id",id.toString())
+                dataStore.deleteTicketVisitedJson(id)
                 if (viewModel.scheduleTickets.value!!.size == 1 ){
                     dialog?.dismiss()
                 }
@@ -133,8 +135,7 @@ class CalendarBottomSheetFragment : BottomSheetDialogFragment(), DataSelection {
     override fun getSelectedTicketData(
         url: String,
         eventId: Int,
-        ticketId: Int,
-        isVisited: Boolean
+        ticketId: Int
     ) {
     }
 
