@@ -42,6 +42,7 @@ class TicketViewModel : ViewModel() {
     get() = _hasTicket
 
     private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+        Log.d("error find exceptionHandler","")
         isError.value = true
     }
     init {
@@ -79,10 +80,13 @@ class TicketViewModel : ViewModel() {
                 Log.d("user all ticket",ticketListResponse.body().toString())
                 if (ticketListResponse.body()?.data!!.isEmpty()) _hasTicket.value = false
                 else {
-                    _hasTicket.value = true
-                    _type.value = "update"
-                    setTicketList(ticketListResponse.body()!!.data)
-//                    _ticketList.value =  as MutableList<Ticket>
+                    _type.postValue("update")
+                    val purchasedTicketList = ticketListResponse.body()?.data!!.filter { it.isPurchase }
+                    Log.d("purchased Ticket","${_hasTicket.value}   $purchasedTicketList")
+                    if (purchasedTicketList.isEmpty()) _hasTicket.value = false
+                    else _hasTicket.value = true
+//                    else if(_hasTicket.value != true && purchasedTicketList.isNotEmpty()) _hasTicket.value = true
+                    setTicketList(purchasedTicketList)
                 }
             }else{
                 Log.d("ticketresponse fail",ticketListResponse.errorBody()?.string().toString())

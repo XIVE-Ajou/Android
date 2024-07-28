@@ -27,13 +27,95 @@
                 android:layout_height="match_parent"
                 android:adjustViewBounds="true" />
 
-<!--            <ImageView-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:background="@color/black"-->
-<!--                android:src="@drawable/ticket_xive_logo"-->
-<!--                app:layout_constraintStart_toStartOf="@+id/img"-->
-<!--                app:layout_constraintTop_toTopOf="@+id/img" />-->
+            <ImageView
+                android:id="@+id/is_xive_logo"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ticket_xive_logo"
+                android:layout_marginTop="24dp"
+                android:layout_marginStart="24dp"
+                app:layout_constraintStart_toStartOf="@+id/img"
+                app:layout_constraintTop_toTopOf="@+id/img" />
+
+            <ImageView
+                android:id="@+id/is_xive_text"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ticket_xive_text"
+                android:layout_marginStart="8dp"
+                app:layout_constraintBottom_toBottomOf="@+id/is_xive_logo"
+                app:layout_constraintStart_toEndOf="@+id/is_xive_logo"
+                app:layout_constraintTop_toTopOf="@+id/is_xive_logo" />
+
+            <TextView
+                android:id="@+id/event_period"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:layout_marginEnd="24dp"
+                android:layout_marginStart="24dp"
+                android:letterSpacing="-0.02"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="@id/img"
+                app:layout_constraintEnd_toEndOf="@id/img"
+                app:layout_constraintStart_toStartOf="@id/img" />
+
+            <TextView
+                android:id="@+id/event_place"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:letterSpacing="-0.02"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:text="fdfsfsdfsdfsdfsdfsdf"
+                android:layout_marginEnd="24dp"
+                app:layout_constraintBottom_toTopOf="@id/event_period"
+                app:layout_constraintEnd_toEndOf="@id/img"
+                app:layout_constraintStart_toStartOf="@id/event_period" />
+
+            <TextView
+                android:id="@+id/event_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:letterSpacing="-0.02"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:text="fdfsfsdfsdfsdfsdfsdf"
+                android:layout_marginEnd="24dp"
+                app:layout_constraintBottom_toTopOf="@id/event_place"
+                app:layout_constraintEnd_toEndOf="@id/img"
+                app:layout_constraintStart_toStartOf="@id/event_period" />
+
+            <ImageView
+                android:id="@+id/is_purchase_frame"
+                android:visibility="gone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ticket_frame_purchase"
+                android:layout_marginBottom="4dp"
+                app:layout_constraintBottom_toTopOf="@+id/event_name"
+                app:layout_constraintStart_toStartOf="@+id/event_period" />
+
+            <TextView
+                android:id="@+id/is_purchase_text"
+                android:visibility="gone"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="예매완료"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:lineSpacingExtra="-2sp"
+                app:layout_constraintBottom_toBottomOf="@+id/is_purchase_frame"
+                app:layout_constraintEnd_toEndOf="@+id/is_purchase_frame"
+                app:layout_constraintStart_toStartOf="@+id/is_purchase_frame"
+                app:layout_constraintTop_toTopOf="@+id/is_purchase_frame" />
         </androidx.constraintlayout.widget.ConstraintLayout>
 
 

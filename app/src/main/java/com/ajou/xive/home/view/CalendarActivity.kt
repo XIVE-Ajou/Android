@@ -65,6 +65,8 @@ class CalendarActivity : AppCompatActivity() {
             override fun create(view: View): DayViewContainer = DayViewContainer(view)
         }
 
+        binding.backBtn.setOnClickListener { finish()  }
+
         binding.calendar.monthScrollListener = { updateTitle() }
         binding.calendar.setup(startMonth, endMonth, daysOfWeek.first())
         binding.calendar.scrollToMonth(currentMonth)

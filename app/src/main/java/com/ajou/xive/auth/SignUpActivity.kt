@@ -84,30 +84,30 @@ class SignUpActivity : AppCompatActivity() {
             }
         })
 
-        binding.nonMemBtn.setOnSingleClickListener {
-            CoroutineScope(Dispatchers.IO).launch(exceptionHandler){
-                val loginDeferred = async { userService.nonLogin() }
-                val loginResponse = loginDeferred.await()
-                if (loginResponse.isSuccessful){
-                    val tokenBody = loginResponse.body()
-                    dataStore.saveAccessToken(tokenBody!!.accessToken)
-                    dataStore.saveRefreshToken(tokenBody.refreshToken)
-                    val getMemberInfoDeferred = async { userService.getMemberInfo(tokenBody.accessToken, tokenBody.refreshToken) }
-                    val getMemberInfoResponse = getMemberInfoDeferred.await()
-                    if (getMemberInfoResponse.isSuccessful) {
-                        val memberInfoBody = JSONObject(getMemberInfoResponse.body()?.string())
-                        dataStore.saveLoginType(memberInfoBody.getString("loginType"))
-                        dataStore.saveNickname(memberInfoBody.getString("nickname"))
-                    }
-                    withContext(Dispatchers.Main){
-                        val intent = Intent(this@SignUpActivity, OnBoardingActivity::class.java)
-                        startActivity(intent)
-                    }
-                }else{
-                    Log.d("nonmember login fail",loginResponse.errorBody()?.string().toString())
-                }
-            }
-        }
+//        binding.nonMemBtn.setOnSingleClickListener {
+//            CoroutineScope(Dispatchers.IO).launch(exceptionHandler){
+//                val loginDeferred = async { userService.nonLogin() }
+//                val loginResponse = loginDeferred.await()
+//                if (loginResponse.isSuccessful){
+//                    val tokenBody = loginResponse.body()
+//                    dataStore.saveAccessToken(tokenBody!!.accessToken)
+//                    dataStore.saveRefreshToken(tokenBody.refreshToken)
+//                    val getMemberInfoDeferred = async { userService.getMemberInfo(tokenBody.accessToken, tokenBody.refreshToken) }
+//                    val getMemberInfoResponse = getMemberInfoDeferred.await()
+//                    if (getMemberInfoResponse.isSuccessful) {
+//                        val memberInfoBody = JSONObject(getMemberInfoResponse.body()?.string())
+//                        dataStore.saveLoginType(memberInfoBody.getString("loginType"))
+//                        dataStore.saveNickname(memberInfoBody.getString("nickname"))
+//                    }
+//                    withContext(Dispatchers.Main){
+//                        val intent = Intent(this@SignUpActivity, OnBoardingActivity::class.java)
+//                        startActivity(intent)
+//                    }
+//                }else{
+//                    Log.d("nonmember login fail",loginResponse.errorBody()?.string().toString())
+//                }
+//            }
+//        }
     }
 
     private fun kakaoLogin(){

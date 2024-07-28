@@ -7,8 +7,11 @@ import android.graphics.Paint
 import android.os.SystemClock
 import android.text.Layout
 import android.text.style.LeadingMarginSpan
+import android.util.Log
 import android.util.TypedValue
 import android.view.View
+import android.widget.Toast
+import androidx.core.content.ContextCompat.startActivity
 import kotlinx.coroutines.CoroutineExceptionHandler
 import java.time.DayOfWeek
 import java.time.Month
@@ -111,6 +114,7 @@ fun dpToPx(context: Context, dp: Float): Float {
 }
 
 val exceptionHandler = CoroutineExceptionHandler { _, exception ->
+    Log.d("exceptionhandler",exception.toString())
     val intent = Intent(App.context(), NetworkErrorActivity::class.java)
     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
     App.context().startActivity(intent)

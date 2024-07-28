@@ -99,7 +99,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 val dialog = NfcTaggingBottomSheetFragment()
                 dialog.show(supportFragmentManager, dialog.tag)
             } else {
-                Toast.makeText(this, "NFC 일반모드를 켜주세요",Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "NFC 일반모드를 켜주세요", Toast.LENGTH_SHORT).show()
                 val intent = Intent(ACTION_NFC_SETTINGS)
                 startActivity(intent)
             }
@@ -113,15 +113,25 @@ class HomeActivity : AppCompatActivity(), DataSelection {
 
         viewModel.hasTicket.observe(this, androidx.lifecycle.Observer {
             if (viewModel.hasTicket.value == true) {
+                Log.d("hasTicket is true","")
                 binding.bgImg.visibility = View.VISIBLE
                 binding.ticketVP.visibility = View.VISIBLE
                 binding.indicator.visibility = View.VISIBLE
+
+                binding.nullLogo.visibility = View.GONE
+                binding.nullText1.visibility = View.GONE
+                binding.nullText3.visibility = View.GONE
                 state = 1
                 animatedBtn(handler, thread, anim) // 애니메이션 멈추기
-            }else{
+            } else {
+                Log.d("hasTicket is false","")
                 binding.nullLogo.visibility = View.VISIBLE
                 binding.nullText1.visibility = View.VISIBLE
                 binding.nullText3.visibility = View.VISIBLE
+
+                binding.bgImg.visibility = View.GONE
+                binding.ticketVP.visibility = View.GONE
+                binding.indicator.visibility = View.GONE
                 state = 0
                 animatedBtn(handler, thread, anim)
             }
@@ -149,18 +159,32 @@ class HomeActivity : AppCompatActivity(), DataSelection {
 //                        binding.bgImg.visibility = View.VISIBLE
 //                    }
                 }
+
                 "update" -> {
-                    adapter.updateList(viewModel.ticketList.value!!)
-                    Glide.with(this@HomeActivity)
-                        .load(viewModel.ticketList.value!![0].eventImageUrl)
-                        .centerCrop()
-                        .into(binding.bgImg)
+                    if (viewModel.ticketList.value != null && viewModel.ticketList.value!!.isNotEmpty()) {
+//                        binding.nullLogo.visibility = View.GONE
+//                        binding.nullText1.visibility = View.GONE
+//                        binding.nullText3.visibility = View.GONE
+                        Log.d("hasTicket check update","")
+                        adapter.updateList(viewModel.ticketList.value!!)
+                        binding.ticketVP.currentItem = 0
+
+                        Glide.with(this@HomeActivity)
+                            .load(viewModel.ticketList.value!![0].eventBackgroundImageUrl)
+                            .centerCrop()
+                            .into(binding.bgImg)
+
+                    } else {
+                        binding.nullLogo.visibility = View.VISIBLE
+                        binding.nullText1.visibility = View.VISIBLE
+                        binding.nullText3.visibility = View.VISIBLE
+                    }
                 }
             }
         })
 
         viewModel.isError.observe(this, androidx.lifecycle.Observer {
-            if (viewModel.isError.value == true){
+            if (viewModel.isError.value == true) {
                 val intent = Intent(this, NetworkErrorActivity::class.java)
                 startActivity(intent)
                 viewModel.isError.value = false
@@ -237,7 +261,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 if (viewModel.ticketList.value!!.isNotEmpty()) {
                     Glide.with(this@HomeActivity)
                         .asBitmap()
-                        .load(viewModel.ticketList.value!![position].eventImageUrl)
+                        .load(viewModel.ticketList.value!![position].eventBackgroundImageUrl)
                         .apply(multiOptions)
 //                        .diskCacheStrategy(DiskCacheStrategy.NONE)
 //                        .skipMemoryCache(true)
@@ -257,20 +281,28 @@ class HomeActivity : AppCompatActivity(), DataSelection {
 
     override fun onResume() {
         super.onResume()
-        Log.d("lifecycle ","onResume")
+        Log.d("lifecycle","onResume")
         CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
             ticketVisitedFlag = dataStore.getTicketVisitedJson().toMutableList()
             viewModel.getUsersTicket()
-            withContext(Dispatchers.Main){
-                binding.ticketVP.currentItem = 0
-                if(viewModel.ticketList.value != null){
-                    Log.d("viewModel ticketList",viewModel.ticketList.value.toString())
-                    Glide.with(this@HomeActivity)
-                        .load(viewModel.ticketList.value!![0].eventImageUrl)
-                        .centerCrop()
-                        .into(binding.bgImg)
-                }
-            }
+//            withContext(Dispatchers.Main) {
+//                if (viewModel.ticketList.value != null && viewModel.ticketList.value!!.isNotEmpty()) {
+////                    binding.ticketVP.currentItem = 0
+////                    Glide.with(this@HomeActivity)
+////                        .load(viewModel.ticketList.value!![0].eventBackgroundImageUrl)
+////                        .centerCrop()
+////                        .into(binding.bgImg)
+////                } else {
+////                    binding.bgImg.visibility = View.GONE
+////                    binding.ticketVP.visibility = View.GONE
+////
+////                    binding.nullLogo.visibility = View.VISIBLE
+////                    binding.nullText1.visibility = View.VISIBLE
+////                    binding.nullText3.visibility = View.VISIBLE
+////
+////                }
+//                }
+//            }
         }
         val pendingIntent = PendingIntent.getActivity(
             this,
@@ -303,10 +335,10 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             val record = recs[i]
             if (Arrays.equals(record.type, NdefRecord.RTD_TEXT)) {
                 var string = byteArrayToStringWithNDEF(record.payload)
-                Log.d("nfc tagging msg",string)
-                if(string.startsWith("stamp:")){
+                Log.d("nfc tagging msg", string)
+                if (string.startsWith("stamp:")) {
                     getStampId(string)
-                }else if(string.startsWith("event:")){
+                } else if (string.startsWith("event:")) {
                     getTicketEventId(string)
                 }
 
@@ -334,7 +366,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         )
     }
 
-    private fun getTicketEventId(token:String) { // 티켓 추가
+    private fun getTicketEventId(token: String) { // 티켓 추가
         CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
             val eventIdDeferred = async { eventService.getEvent(accessToken, refreshToken, token) }
             val eventIdResponse = eventIdDeferred.await()
@@ -345,44 +377,55 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 val jsonObject = JsonObject().apply {
                     addProperty("eventId", eventId)
                 }
-                val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), jsonObject.toString())
-                val ticketDeferred = async { ticketService.postExhibitTicket(accessToken, refreshToken, requestBody) }
+                val requestBody = RequestBody.create(
+                    "application/json".toMediaTypeOrNull(),
+                    jsonObject.toString()
+                )
+                val ticketDeferred = async {
+                    ticketService.postExhibitTicket(
+                        accessToken,
+                        refreshToken,
+                        requestBody
+                    )
+                }
                 val ticketResponse = ticketDeferred.await()
                 if (ticketResponse.isSuccessful) {
                     val body = ticketResponse.body()!!
-                    if (body.isNew){
+                    if (body.isNew) {
 //                        val list = mutableListOf<Ticket>()
 //                        viewModel.ticketList.value?.let { list.addAll(it) }
 //                        val index = list.withIndex().first { it.value.eventId == body.eventId}.index
 //                        list[index].ticketId = body.ticketId
 //                        viewModel.setTicketList(list)
                         viewModel.getUsersTicket()
-                        viewModel.setType("update")
+//                        viewModel.setType("update")
                         ticketVisitedFlag.addAll(dataStore.getTicketVisitedJson())
 
                         val obj = TicketVisitedFlag(body.ticketId, true)
                         ticketVisitedFlag.add(obj)
-                        Log.d("check testList",ticketVisitedFlag.toString())
+                        Log.d("check testList", ticketVisitedFlag.toString())
 
                         dataStore.saveTicketVisitedJson(ticketVisitedFlag)
 
-                    }else{
-                        withContext(Dispatchers.Main){
-                            Toast.makeText(this@HomeActivity, "이미 등록된 티켓입니다",Toast.LENGTH_SHORT).show()
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@HomeActivity, "이미 등록된 티켓입니다", Toast.LENGTH_SHORT)
+                                .show()
                         }
                     }
-                } else{
-                    Log.d("ticketResponse fail",ticketResponse.errorBody()?.string().toString())
+                } else {
+                    Log.d("ticketResponse fail", ticketResponse.errorBody()?.string().toString())
                 }
             } else {
-                Log.d("eventResponse fail",eventIdResponse.errorBody()?.string().toString())
+                Log.d("eventResponse fail", eventIdResponse.errorBody()?.string().toString())
             }
         }
     }
 
-    private fun getStampId(token:String) {
+    private fun getStampId(token: String) {
         CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
-            val stampIdDeferred= async { stampService.getStampId(accessToken, refreshToken, token) }
+            val stampIdDeferred =
+                async { stampService.getStampId(accessToken, refreshToken, token) }
             val stampIdResponse = stampIdDeferred.await()
 
             if (stampIdResponse.isSuccessful) {
@@ -391,16 +434,20 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 val jsonObject = JsonObject().apply {
                     addProperty("stampId", stampId)
                 }
-                val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), jsonObject.toString())
-                val stampDeferred = async { stampService.postStamp(accessToken, refreshToken, requestBody) }
+                val requestBody = RequestBody.create(
+                    "application/json".toMediaTypeOrNull(),
+                    jsonObject.toString()
+                )
+                val stampDeferred =
+                    async { stampService.postStamp(accessToken, refreshToken, requestBody) }
                 val stampResponse = stampDeferred.await()
                 if (stampResponse.isSuccessful) {
-                    Log.d("stampResponse success",stampResponse.body().toString())
-                } else{
-                    Log.d("ticketResponse fail",stampResponse.errorBody()?.string().toString())
+                    Log.d("stampResponse success", stampResponse.body().toString())
+                } else {
+                    Log.d("ticketResponse fail", stampResponse.errorBody()?.string().toString())
                 }
             } else {
-                Log.d("stampIdResponse fail",stampIdResponse.errorBody()?.string().toString())
+                Log.d("stampIdResponse fail", stampIdResponse.errorBody()?.string().toString())
             }
         }
     }
@@ -429,13 +476,12 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         val flag = ticketVisitedFlag.filter { it.ticketId == ticketId }
         val intent = Intent(this, WebviewActivity::class.java)
         intent.putExtra("url", url)
-        intent.putExtra("eventId",eventId)
-        intent.putExtra("ticketId",ticketId)
+        intent.putExtra("eventId", eventId)
+        intent.putExtra("ticketId", ticketId)
         if (flag.isEmpty()) {
             intent.putExtra("isNewVisited", false)
             startActivity(intent)
-        }
-        else {
+        } else {
             intent.putExtra("isNewVisited", flag[0].isNewVisited)
             CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
                 val list = mutableListOf<TicketVisitedFlag>()
@@ -443,7 +489,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 val index = list.withIndex().first { it.value.ticketId == ticketId }.index
                 list[index].isNewVisited = false
                 dataStore.saveTicketVisitedJson(list)
-                withContext(Dispatchers.Main){
+                withContext(Dispatchers.Main) {
                     startActivity(intent)
                 }
             }
