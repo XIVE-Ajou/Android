@@ -50,10 +50,10 @@ class NfcTaggingBottomSheetFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val gifDrawable = pl.droidsonroids.gif.GifDrawable(mContext!!.resources, R.drawable.nfc_guide_animation)
-        binding.gif.setImageDrawable(gifDrawable)
+//        val gifDrawable = pl.droidsonroids.gif.GifDrawable(mContext!!.resources, R.drawable.nfc_guide_animation)
+//        binding.gif.setImageDrawable(gifDrawable)
 
-        binding.closeBtn.setOnClickListener {
+        binding.cancelButton.setOnClickListener {
             dismiss()
         }
 
@@ -70,7 +70,7 @@ class NfcTaggingBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun getBottomSheetDialogDefaultHeight(): Int {
-        return getWindowHeight() * 36 / 100
+        return getWindowHeight() * 52 / 100
     }
 
     private fun getWindowHeight(): Int {

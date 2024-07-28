@@ -86,7 +86,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             override fun run() {
                 super.run()
                 binding.nfcBtn.startAnimation(anim)
-                handler.postDelayed(this, 1500)
+                handler.postDelayed(this, 2000)
             }
         }
 
@@ -113,7 +113,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
 
         viewModel.hasTicket.observe(this, androidx.lifecycle.Observer {
             if (viewModel.hasTicket.value == true) {
-                Log.d("hasTicket is true","")
                 binding.bgImg.visibility = View.VISIBLE
                 binding.ticketVP.visibility = View.VISIBLE
                 binding.indicator.visibility = View.VISIBLE
@@ -122,9 +121,8 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 binding.nullText1.visibility = View.GONE
                 binding.nullText3.visibility = View.GONE
                 state = 1
-                animatedBtn(handler, thread, anim) // 애니메이션 멈추기
+                animatedBtn(handler, thread) // 애니메이션 멈추기
             } else {
-                Log.d("hasTicket is false","")
                 binding.nullLogo.visibility = View.VISIBLE
                 binding.nullText1.visibility = View.VISIBLE
                 binding.nullText3.visibility = View.VISIBLE
@@ -133,39 +131,14 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 binding.ticketVP.visibility = View.GONE
                 binding.indicator.visibility = View.GONE
                 state = 0
-                animatedBtn(handler, thread, anim)
+                animatedBtn(handler, thread)
             }
         })
 
         viewModel.ticketList.observe(this, androidx.lifecycle.Observer {
             when (viewModel.type.value) {
-                "insert" -> {
-
-//                    adapter.addToList(viewModel.ticketList.value!!)
-//                    binding.indicator.attachToPager(binding.ticketVP)
-//                    if (binding.indicator.visibility == View.VISIBLE) binding.indicator.invalidate()
-//                    if (viewModel.ticketList.value!!.size != 0) {
-//                        Log.d("check viewmodel",viewModel.ticketList.value.toString())
-//                        binding.indicator.visibility = View.VISIBLE
-//                        binding.ticketVP.visibility = View.VISIBLE
-//                        binding.nullLogo.visibility = View.GONE
-//                        binding.nullText1.visibility = View.GONE
-//                        binding.nullText3.visibility = View.GONE
-////                        Glide.with(this@HomeActivity)
-////                            .load(viewModel.ticketList.value!![viewModel.ticketList.value!!.size-1].eventImageUrl)
-////                            .apply(multiOptions)
-////                            .diskCacheStrategy(DiskCacheStrategy.ALL)
-////                            .into(binding.bgImg)
-//                        binding.bgImg.visibility = View.VISIBLE
-//                    }
-                }
-
                 "update" -> {
                     if (viewModel.ticketList.value != null && viewModel.ticketList.value!!.isNotEmpty()) {
-//                        binding.nullLogo.visibility = View.GONE
-//                        binding.nullText1.visibility = View.GONE
-//                        binding.nullText3.visibility = View.GONE
-                        Log.d("hasTicket check update","")
                         adapter.updateList(viewModel.ticketList.value!!)
                         binding.ticketVP.currentItem = 0
 
@@ -285,24 +258,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
             ticketVisitedFlag = dataStore.getTicketVisitedJson().toMutableList()
             viewModel.getUsersTicket()
-//            withContext(Dispatchers.Main) {
-//                if (viewModel.ticketList.value != null && viewModel.ticketList.value!!.isNotEmpty()) {
-////                    binding.ticketVP.currentItem = 0
-////                    Glide.with(this@HomeActivity)
-////                        .load(viewModel.ticketList.value!![0].eventBackgroundImageUrl)
-////                        .centerCrop()
-////                        .into(binding.bgImg)
-////                } else {
-////                    binding.bgImg.visibility = View.GONE
-////                    binding.ticketVP.visibility = View.GONE
-////
-////                    binding.nullLogo.visibility = View.VISIBLE
-////                    binding.nullText1.visibility = View.VISIBLE
-////                    binding.nullText3.visibility = View.VISIBLE
-////
-////                }
-//                }
-//            }
         }
         val pendingIntent = PendingIntent.getActivity(
             this,
@@ -346,26 +301,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         }
     }
 
-    private fun byteArrayToStringWithNDEF(byteArray: ByteArray): String {
-        if (byteArray.isEmpty()) {
-            return ""
-        }
-
-        // 첫 번째 바이트는 상태 바이트
-        val statusByte = byteArray[0].toInt()
-
-        // 상태 바이트의 하위 5비트는 언어 코드의 길이를 나타냄
-        val languageCodeLength = statusByte and 0x3F
-
-        // 실제 텍스트 데이터는 언어 코드 다음에 위치
-        return String(
-            byteArray,
-            languageCodeLength + 1,
-            byteArray.size - languageCodeLength - 1,
-            Charsets.UTF_8
-        )
-    }
-
     private fun getTicketEventId(token: String) { // 티켓 추가
         CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
             val eventIdDeferred = async { eventService.getEvent(accessToken, refreshToken, token) }
@@ -392,13 +327,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 if (ticketResponse.isSuccessful) {
                     val body = ticketResponse.body()!!
                     if (body.isNew) {
-//                        val list = mutableListOf<Ticket>()
-//                        viewModel.ticketList.value?.let { list.addAll(it) }
-//                        val index = list.withIndex().first { it.value.eventId == body.eventId}.index
-//                        list[index].ticketId = body.ticketId
-//                        viewModel.setTicketList(list)
                         viewModel.getUsersTicket()
-//                        viewModel.setType("update")
                         ticketVisitedFlag.addAll(dataStore.getTicketVisitedJson())
 
                         val obj = TicketVisitedFlag(body.ticketId, true)
@@ -496,13 +425,12 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         }
     }
 
-    private fun animatedBtn(handler: Handler, thread: Thread, anim: Animation) {
-        binding.nfcBtn.startAnimation(anim)
+    private fun animatedBtn(handler: Handler, thread: Thread) {
 
         if (state == 1) {
             handler.removeCallbacks(thread)
         } else {
-            handler.postDelayed(thread, 1500)
+            handler.post(thread)
         }
     }
 }

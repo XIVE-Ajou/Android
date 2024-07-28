@@ -114,8 +114,27 @@ fun dpToPx(context: Context, dp: Float): Float {
 }
 
 val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-    Log.d("exceptionhandler",exception.toString())
     val intent = Intent(App.context(), NetworkErrorActivity::class.java)
     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
     App.context().startActivity(intent)
+}
+
+fun byteArrayToStringWithNDEF(byteArray: ByteArray): String {
+    if (byteArray.isEmpty()) {
+        return ""
+    }
+
+    // 첫 번째 바이트는 상태 바이트
+    val statusByte = byteArray[0].toInt()
+
+    // 상태 바이트의 하위 5비트는 언어 코드의 길이를 나타냄
+    val languageCodeLength = statusByte and 0x3F
+
+    // 실제 텍스트 데이터는 언어 코드 다음에 위치
+    return String(
+        byteArray,
+        languageCodeLength + 1,
+        byteArray.size - languageCodeLength - 1,
+        Charsets.UTF_8
+    )
 }

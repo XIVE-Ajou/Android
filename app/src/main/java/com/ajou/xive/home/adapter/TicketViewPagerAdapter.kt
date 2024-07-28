@@ -24,26 +24,26 @@ class TicketViewPagerAdapter(val context : Context, var list: List<Ticket>, val 
                 .diskCacheStrategy(DiskCacheStrategy.ALL)
                 .into(binding.img)
 
-            if (data.isXive) {
-                binding.isXiveLogo.visibility = View.VISIBLE
-                binding.isXiveText.visibility = View.VISIBLE
-                if (data.isPurchase){
-                    binding.isPurchaseText.text = context.getString(R.string.ticket_is_purchase)
-                    binding.isPurchaseFrame.visibility = View.VISIBLE
-                    binding.isPurchaseText.visibility = View.VISIBLE
-                } else {
-                    binding.isPurchaseText.text = context.getString(R.string.ticket_is_not_purchase)
-                }
-            } else {
-                binding.isXiveLogo.visibility = View.GONE
-                binding.isXiveText.visibility = View.GONE
-                binding.isPurchaseFrame.visibility = View.GONE
-                binding.isPurchaseText.visibility = View.GONE
-            }
-
-            binding.eventName.text = data.eventName
-            binding.eventPeriod.text = String.format(context.getString(R.string.ticket_period), data.startDate, data.endDate)
-            binding.eventPlace.text = data.eventPlace
+//            if (data.isXive) {
+//                binding.isXiveLogo.visibility = View.VISIBLE
+//                binding.isXiveText.visibility = View.VISIBLE
+//                if (data.isPurchase){
+//                    binding.isPurchaseText.text = context.getString(R.string.ticket_is_purchase)
+//                    binding.isPurchaseFrame.visibility = View.VISIBLE
+//                    binding.isPurchaseText.visibility = View.VISIBLE
+//                } else {
+//                    binding.isPurchaseText.text = context.getString(R.string.ticket_is_not_purchase)
+//                }
+//            } else {
+//                binding.isXiveLogo.visibility = View.GONE
+//                binding.isXiveText.visibility = View.GONE
+//                binding.isPurchaseFrame.visibility = View.GONE
+//                binding.isPurchaseText.visibility = View.GONE
+//            }
+//
+//            binding.eventName.text = data.eventName
+//            binding.eventPeriod.text = String.format(context.getString(R.string.ticket_period), data.startDate, data.endDate)
+//            binding.eventPlace.text = data.eventPlace
 
             binding.ticket.setOnClickListener {
                 link.getSelectedTicketData(data.eventWebUrl, data.eventId, data.ticketId)

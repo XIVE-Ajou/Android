@@ -18,6 +18,9 @@
 
     <string name="calendar_popup_title">%1$d월 %2$d일</string>
 
+    <string name="nfc_guide_title">스캔 준비 완료</string>
+    <string name="nfc_guide_content">기기 뒷면을 XIVE NFC에 태그</string>
+
 
     <string name="word_count">%s/500</string>
 
