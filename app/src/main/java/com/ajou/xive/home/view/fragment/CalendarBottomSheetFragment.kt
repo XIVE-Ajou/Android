@@ -3,6 +3,7 @@ package com.ajou.xive.home.view.fragment
 import android.app.Activity
 import android.app.Dialog
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.Log
@@ -17,6 +18,7 @@ import com.ajou.xive.*
 import com.ajou.xive.databinding.FragmentCalendarBottomSheetBinding
 import com.ajou.xive.home.ScheduleViewModel
 import com.ajou.xive.home.adapter.CalendarTicketRVAdapter
+import com.ajou.xive.home.view.WebviewActivity
 import com.ajou.xive.network.RetrofitInstance
 import com.ajou.xive.network.api.TicketService
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -137,6 +139,14 @@ class CalendarBottomSheetFragment : BottomSheetDialogFragment(), DataSelection {
         eventId: Int,
         ticketId: Int
     ) {
+        val flag = true
+        val intent = Intent(mContext, WebviewActivity::class.java)
+        intent.putExtra("url", url)
+        intent.putExtra("eventId", eventId)
+        intent.putExtra("ticketId", ticketId)
+        intent.putExtra("isNewVisited", flag)
+        Log.d("test","before move!")
+        startActivity(intent)
     }
 
 

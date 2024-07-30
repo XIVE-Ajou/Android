@@ -17,6 +17,7 @@ import android.view.View
 import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -66,6 +67,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
     var state = 0
     private var ticketVisitedFlag = mutableListOf<TicketVisitedFlag>()
 
+    private var lastBackPressedTime = 0L
     var nfcAdapter: NfcAdapter? = null
     val multiOptions = RequestOptions().transform(
         FitCenter(),
@@ -104,6 +106,8 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                 startActivity(intent)
             }
         }
+
+        onBackPressedDispatcher.addCallback(this, onBackPressedCallback)
 
         binding.setting.setOnClickListener {
             val intent = Intent(this, SettingActivity::class.java)
@@ -194,8 +198,8 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             startActivity(intent)
         }
         binding.ticketVP.offscreenPageLimit = 4
-        // item_view 간의 양 옆 여백을 상쇄할 값
 
+        // item_view 간의 양 옆 여백을 상쇄할 값
         val offsetBetweenPages =
             resources.getDimensionPixelOffset(R.dimen.offsetBetweenPages).toFloat()
 
@@ -407,22 +411,24 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         intent.putExtra("url", url)
         intent.putExtra("eventId", eventId)
         intent.putExtra("ticketId", ticketId)
-        if (flag.isEmpty()) {
-            intent.putExtra("isNewVisited", false)
-            startActivity(intent)
-        } else {
-            intent.putExtra("isNewVisited", flag[0].isNewVisited)
-            CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
-                val list = mutableListOf<TicketVisitedFlag>()
-                list.addAll(dataStore.getTicketVisitedJson())
-                val index = list.withIndex().first { it.value.ticketId == ticketId }.index
-                list[index].isNewVisited = false
-                dataStore.saveTicketVisitedJson(list)
-                withContext(Dispatchers.Main) {
-                    startActivity(intent)
-                }
-            }
-        }
+        intent.putExtra("isNewVisited",true)
+        startActivity(intent)
+//        if (flag.isEmpty()) {
+//            intent.putExtra("isNewVisited", false)
+//            startActivity(intent)
+//        } else {
+//            intent.putExtra("isNewVisited", flag[0].isNewVisited)
+//            CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
+//                val list = mutableListOf<TicketVisitedFlag>()
+//                list.addAll(dataStore.getTicketVisitedJson())
+//                val index = list.withIndex().first { it.value.ticketId == ticketId }.index
+//                list[index].isNewVisited = false
+//                dataStore.saveTicketVisitedJson(list)
+//                withContext(Dispatchers.Main) {
+//                    startActivity(intent)
+//                }
+//            }
+//        }
     }
 
     private fun animatedBtn(handler: Handler, thread: Thread) {
@@ -431,6 +437,17 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             handler.removeCallbacks(thread)
         } else {
             handler.post(thread)
+        }
+    }
+
+    private val onBackPressedCallback: OnBackPressedCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            if (lastBackPressedTime > System.currentTimeMillis() - 2000) {
+                finish()
+            } else {
+                Toast.makeText(this@HomeActivity, "한 번 더 누르시면 종료됩니다.", Toast.LENGTH_SHORT).show()
+                lastBackPressedTime = System.currentTimeMillis()
+            }
         }
     }
 }

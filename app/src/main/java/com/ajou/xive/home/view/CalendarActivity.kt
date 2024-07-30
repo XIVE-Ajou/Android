@@ -1,12 +1,16 @@
 package com.ajou.xive.home.view
 
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.ContactsContract.Data
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.lifecycle.Observer
+import com.ajou.xive.DataSelection
 import com.ajou.xive.R
 import com.ajou.xive.databinding.ActivityCalendarBinding
 import com.ajou.xive.databinding.CalendarDayBinding
@@ -15,11 +19,17 @@ import com.kizitonwose.calendar.view.ViewContainer
 import java.time.LocalDate
 import java.time.YearMonth
 import com.ajou.xive.displayText
+import com.ajou.xive.exceptionHandler
 import com.ajou.xive.format
 import com.ajou.xive.home.ScheduleViewModel
+import com.ajou.xive.home.model.TicketVisitedFlag
 import com.ajou.xive.home.view.fragment.CalendarBottomSheetFragment
 import com.bumptech.glide.Glide
 import com.kizitonwose.calendar.core.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.DayOfWeek
 
 class CalendarActivity : AppCompatActivity() {
@@ -94,7 +104,7 @@ class CalendarActivity : AppCompatActivity() {
         viewModel.scheduleTickets.observe(this, Observer {
             if (viewModel.selectedDate.value != null) {
                 val element = viewModel.scheduleTickets.value!!.find { it.eventDay == viewModel.selectedDate.value }
-                if (element == null) { // 완전히 사라졌을 때만 처리가능.. -> 여러 개의 티켓이 있고 하나를 삭제했을 때는 숫자 변경 X
+                if (element == null) {
                     isEdit = true
                     binding.calendar.notifyDateChanged(LocalDate.parse(viewModel.selectedDate.value, format))
                 }
@@ -186,7 +196,7 @@ class CalendarActivity : AppCompatActivity() {
                     }
                 }
             } else {
-                img.visibility = View.GONE
+                img.visibility = View.INVISIBLE
                 imgBg.visibility = View.GONE
                 ticketCount.visibility = View.GONE
                 ticketCountBg.visibility = View.GONE
