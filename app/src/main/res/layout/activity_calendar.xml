@@ -68,6 +68,7 @@
     <ImageView
         android:layout_width="0dp"
         android:layout_height="0dp"
+
         android:background="@drawable/calendar_arrow_shadow_bg"
         app:layout_constraintBottom_toBottomOf="@+id/month_plus"
         app:layout_constraintEnd_toEndOf="@+id/month_plus"
@@ -128,19 +129,40 @@
 
     </LinearLayout>
 
-    <com.kizitonwose.calendar.view.CalendarView
-        android:id="@+id/calendar"
+    <!--    <com.kizitonwose.calendar.view.CalendarView-->
+<!--        android:id="@+id/calendar"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="0dp"-->
+<!--        app:cv_daySize="seventhWidth"-->
+<!--        app:cv_dayViewResource="@layout/calendar_day"-->
+<!--        app:cv_outDateStyle="endOfRow"-->
+<!--        app:cv_scrollPaged="true"-->
+<!--        app:layout_constraintHeight_percent="0.5"-->
+<!--        app:layout_constraintVertical_bias="0.1"-->
+<!--        app:layout_constraintBottom_toTopOf="@+id/nfcBtn"-->
+<!--        app:layout_constraintEnd_toEndOf="@+id/month_plus"-->
+<!--        app:layout_constraintStart_toStartOf="@+id/year"-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/dayWeek" />-->
+
+    <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:cv_daySize="rectangle"
-        app:cv_dayViewResource="@layout/calendar_day"
-        app:cv_outDateStyle="endOfGrid"
-        app:cv_scrollPaged="true"
-        android:layout_marginBottom="60dp"
         app:layout_constraintBottom_toTopOf="@+id/nfcBtn"
         app:layout_constraintEnd_toEndOf="@+id/month_plus"
+        app:layout_constraintHeight_percent="0.5"
         app:layout_constraintStart_toStartOf="@+id/year"
-        app:layout_constraintTop_toBottomOf="@+id/dayWeek" />
+        app:layout_constraintTop_toBottomOf="@+id/dayWeek"
+        app:layout_constraintVertical_bias="0.098">
+
+        <com.kizitonwose.calendar.view.CalendarView
+            android:id="@+id/calendar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cv_daySize="seventhWidth"
+            app:cv_dayViewResource="@layout/calendar_day"
+            app:cv_outDateStyle="endOfRow"
+            app:cv_scrollPaged="true" />
+    </ScrollView>
 
     <ImageView
         android:id="@+id/nfcBtn"

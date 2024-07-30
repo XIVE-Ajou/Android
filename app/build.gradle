@@ -123,6 +123,7 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
 
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1'
+    
 
 //    // splash screen
 //    implementation 'androidx.core:core-splashscreen:1.0.1'

@@ -23,9 +23,19 @@ class CalendarTicketRVAdapter(val context: Context, var list: List<Ticket>, val 
             binding.location.text = data.eventPlace
             val period = "${data.startDate} ~ ${data.endDate}"
             binding.period.text = period
-            binding.title.text = data.eventName // TODO eventRound도 같이 띄워줘야하는지
-            binding.type.text = data.eventType
+            binding.title.text = data.eventName
 
+            when(data.eventType){
+                "EXHIBITION" -> binding.type.text = "전시"
+                "MUSICAL" -> binding.type.text = "뮤지컬"
+                "CONCERT" -> binding.type.text = "콘서트"
+                else -> binding.type.text = data.eventType
+            }
+
+            binding.item.setOnClickListener {
+                Log.d("test","item is clicked!")
+                link.getSelectedTicketData(data.eventWebUrl, data.eventId, data.ticketId)
+            }
         }
     }
 

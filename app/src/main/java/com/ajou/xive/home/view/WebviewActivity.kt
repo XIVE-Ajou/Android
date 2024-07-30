@@ -14,6 +14,7 @@ import android.os.Message
 import android.util.Log
 import android.view.View
 import android.webkit.*
+import android.widget.Toast
 import com.ajou.xive.UserDataStore
 import com.ajou.xive.databinding.ActivityWebviewBinding
 import com.ajou.xive.exceptionHandler
@@ -196,6 +197,16 @@ class WebviewActivity : AppCompatActivity() {
                     Log.d("stamp test in positive-sum","$stampId")
                     withContext(Dispatchers.Main){
                         binding.webview.evaluateJavascript("javascript:nfcTagging($stampId)",null)
+                        var floor = 0
+                        floor = when(stampId){
+                            2 -> 1
+                            3 -> 2
+                            4 -> 3
+                            5 -> 4
+                            else -> -1
+                        }
+                        if (floor != -1) Toast.makeText(this@WebviewActivity,"${floor}층의 스탬프가 등록되었습니다.",Toast.LENGTH_SHORT).show()
+                        else Toast.makeText(this@WebviewActivity,"오류가 발생했습니다. 다시 한 번 시도해 주세요.",Toast.LENGTH_SHORT).show()
                     }
                 }else if(currentUrl.contains("/ticket")){
                     Log.d("stamp test in ticket","$stampId")

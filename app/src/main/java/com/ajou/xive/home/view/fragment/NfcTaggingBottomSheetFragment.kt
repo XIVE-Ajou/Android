@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.ajou.xive.R
 import com.ajou.xive.databinding.FragmentNfcTaggingBottomSheetBinding
+import com.bumptech.glide.Glide
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -50,8 +51,9 @@ class NfcTaggingBottomSheetFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-//        val gifDrawable = pl.droidsonroids.gif.GifDrawable(mContext!!.resources, R.drawable.nfc_guide_animation)
-//        binding.gif.setImageDrawable(gifDrawable)
+        Glide.with(mContext!!)
+            .load(R.drawable.nfc_guide_animation)
+            .into(binding.gif)
 
         binding.cancelButton.setOnClickListener {
             dismiss()
