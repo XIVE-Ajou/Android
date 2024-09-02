@@ -25,8 +25,8 @@ android {
         applicationId "com.ajou.xive"
         minSdk 26
         targetSdk 34
-        versionCode 6
-        versionName "1.1.0"
+        versionCode 8
+        versionName "1.1.2"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -123,10 +123,13 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics")
 
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1'
-    
+
+    // in-app update
+//    implementation 'com.google.android.play:app-update:2.1.0'
+//    implementation 'com.google.android.play:app-update-ktx:2.1.0'
 
 //    // splash screen
-//    implementation 'androidx.core:core-splashscreen:1.0.1'
+    implementation 'androidx.core:core-splashscreen:1.0.1'
 
 
 

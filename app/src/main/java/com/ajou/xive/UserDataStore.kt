@@ -110,7 +110,6 @@ class UserDataStore() {
     suspend fun saveTicketVisitedJson(ticketVisitedFlags: List<TicketVisitedFlag>) {
         withContext(Dispatchers.IO) {
             val jsonString = Json.encodeToString(ticketVisitedFlags)
-            Log.d("check jsonString", jsonString)
             dataStore.edit { pref ->
                 pref[PreferencesKeys.TICKET_VISITED_JSON] = jsonString
             }

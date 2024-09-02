@@ -122,7 +122,6 @@ class CalendarBottomSheetFragment : BottomSheetDialogFragment(), DataSelection {
                 async { ticketService.deleteTicket(accessToken!!, refreshToken!!, id.toString()) }
             val deleteResponse = deleteDeferred.await()
             if (deleteResponse.isSuccessful) {
-                Log.d("check delete ticket id",id.toString())
                 dataStore.deleteTicketVisitedJson(id)
                 if (viewModel.scheduleTickets.value!!.size == 1 ){
                     dialog?.dismiss()
@@ -145,7 +144,6 @@ class CalendarBottomSheetFragment : BottomSheetDialogFragment(), DataSelection {
         intent.putExtra("eventId", eventId)
         intent.putExtra("ticketId", ticketId)
         intent.putExtra("isNewVisited", flag)
-        Log.d("test","before move!")
         startActivity(intent)
     }
 

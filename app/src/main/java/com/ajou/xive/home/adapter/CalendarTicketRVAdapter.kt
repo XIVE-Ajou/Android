@@ -33,7 +33,6 @@ class CalendarTicketRVAdapter(val context: Context, var list: List<Ticket>, val 
             }
 
             binding.item.setOnClickListener {
-                Log.d("test","item is clicked!")
                 link.getSelectedTicketData(data.eventWebUrl, data.eventId, data.ticketId)
             }
         }

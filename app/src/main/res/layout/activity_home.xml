@@ -146,7 +146,7 @@
             android:id="@+id/nfcBtn"
             android:layout_width="72dp"
             android:layout_height="72dp"
-            android:src="@drawable/home_nfc_black"
+            android:src="@drawable/home_nfc_white"
             android:layout_marginBottom="8dp"
             android:layout_marginEnd="8dp"
             app:layout_constraintBottom_toBottomOf="parent"

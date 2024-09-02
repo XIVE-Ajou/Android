@@ -11,6 +11,7 @@
         <item name="colorOnSecondary">@color/black</item>
         <!-- Customize your theme here. -->
         <item name="windowNoTitle">true</item>
+        <item name="android:windowIsTranslucent">true</item>
     </style>
     <style name="PretendardTextViewStyle" parent="@android:style/Widget.DeviceDefault.TextView">
         <item name="android:fontFamily">@font/pretendard</item>
@@ -27,8 +28,9 @@
     <style name="PretendardCheckboxStyle" parent="@android:style/Widget.DeviceDefault.CompoundButton.CheckBox">
         <item name="android:fontFamily">@font/pretendard</item>
     </style>
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
-    </style>
+<!--    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">-->
+<!--        -->
+<!--    </style>-->
 
     <style name="CustomDialog">
         <item name="android:windowFrame">@null</item>

@@ -63,8 +63,7 @@ class WebviewActivity : AppCompatActivity() {
         val ticketId = intent.getIntExtra("ticketId", 0)
         val isNewVisited = intent.getBooleanExtra("isNewVisited",false)
 
-//        val url = "https://xive.co.kr/xive-test"
-        WebView.setWebContentsDebuggingEnabled(true)
+//        WebView.setWebContentsDebuggingEnabled(true)
 
         CoroutineScope(Dispatchers.IO).launch {
             accessToken = dataStore.getAccessToken().toString()
@@ -97,7 +96,6 @@ class WebviewActivity : AppCompatActivity() {
                 binding.webview.webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
-                        Log.d("check data webview","$eventId $ticketId $isNewVisited $accessToken $refreshToken")
                         if (url!!.contains("/tickets")) {
                             currentUrl = url
                             binding.webview.evaluateJavascript("javascript:initWeb('$accessToken','$refreshToken',$eventId, $ticketId, $isNewVisited)",null)
@@ -154,7 +152,6 @@ class WebviewActivity : AppCompatActivity() {
             val record = recs[i]
             if (Arrays.equals(record.type, NdefRecord.RTD_TEXT)) {
                 val token = byteArrayToStringWithNDEF(record.payload)
-                Log.d("getStampId 호출","")
                 getStampId(token)
             } else if (Arrays.equals(record.type, NdefRecord.RTD_URI)) {
                 val url = record.toUri().toString()
@@ -185,31 +182,34 @@ class WebviewActivity : AppCompatActivity() {
 
     private fun getStampId(token: String){
         CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
-            Log.d("stamp test token", token)
             val stampIdDeferred= async { stampService.getStampId(accessToken, refreshToken, token) }
             val stampIdResponse = stampIdDeferred.await()
 
             if (stampIdResponse.isSuccessful) {
                 val body = JSONObject(stampIdResponse.body()?.string().toString())
                 val stampId = body.getInt("stampId")
-                Log.d("stamp test stampId",stampId.toString())
-                if(currentUrl.contains("/positive-sum")){
-                    Log.d("stamp test in positive-sum","$stampId")
+                if(currentUrl.contains("/positive-sum-main")){
                     withContext(Dispatchers.Main){
                         binding.webview.evaluateJavascript("javascript:nfcTagging($stampId)",null)
-                        var floor = 0
-                        floor = when(stampId){
-                            2 -> 1
-                            3 -> 2
-                            4 -> 3
-                            5 -> 4
-                            else -> -1
-                        }
+                        var author = ""
+                        val authorList = arrayListOf("김예솔","김민우","이인수","김채영","배일우","이타카","시현","김준학","유도원","윤마리")
+                        val index = (stampId - 57)
+                        if(index % 3 == 0) author = authorList[index/3]
+                        else author = "인스타"
+                        if("인스타".equals(author) == true)
+                        else if ("".equals(author) == false) Toast.makeText(this@WebviewActivity,"${author} 작가의 트렁크를 태그했습니다.",Toast.LENGTH_SHORT).show()
+                        else Toast.makeText(this@WebviewActivity,"오류가 발생했습니다. 다시 한 번 시도해 주세요.",Toast.LENGTH_SHORT).show()
+                    }
+                }
+                else if(currentUrl.contains("/positive-sum")){
+                    withContext(Dispatchers.Main){
+                        binding.webview.evaluateJavascript("javascript:nfcTagging($stampId)",null)
+                        var floor = -1
+                        floor = stampId - 1
                         if (floor != -1) Toast.makeText(this@WebviewActivity,"${floor}층의 스탬프가 등록되었습니다.",Toast.LENGTH_SHORT).show()
                         else Toast.makeText(this@WebviewActivity,"오류가 발생했습니다. 다시 한 번 시도해 주세요.",Toast.LENGTH_SHORT).show()
                     }
                 }else if(currentUrl.contains("/ticket")){
-                    Log.d("stamp test in ticket","$stampId")
                     val jsonObject = JsonObject().apply {
                         addProperty("stampId", stampId)
                     }
@@ -217,7 +217,7 @@ class WebviewActivity : AppCompatActivity() {
                     val stampDeferred = async { stampService.postStamp(accessToken, refreshToken, requestBody) }
                     val stampResponse = stampDeferred.await()
                     if (stampResponse.isSuccessful) {
-                        Log.d("stampResponse success",stampResponse.body().toString())
+
                     } else{
                         Log.d("stampResponse fail",stampResponse.errorBody()?.string().toString())
                     }

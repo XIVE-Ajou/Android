@@ -101,7 +101,7 @@ class ScheduleViewModel : ViewModel() {
             val scheduleDeferred = async { schedulesService.getMonthSchedules(accessToken!!, refreshToken!!,currentMonth.toString()) }
             val scheduleResponse = scheduleDeferred.await()
             if (scheduleResponse.isSuccessful) {
-                _scheduleList.postValue(scheduleResponse.body()?.data!! as MutableList<Schedule>)
+                setScheduleList(scheduleResponse.body()!!.data)
             }
         }
     }

@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.ajou.xive" />
-                  <option name="mobileSdkAppId" value="1:711687228078:android:ccffe6126cf106f6b9bb3f" />
-                  <option name="projectId" value="xive-release" />
-                  <option name="projectNumber" value="711687228078" />
+                  <option name="appId" value="PLACEHOLDER" />
+                  <option name="mobileSdkAppId" value="" />
+                  <option name="projectId" value="" />
+                  <option name="projectNumber" value="" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

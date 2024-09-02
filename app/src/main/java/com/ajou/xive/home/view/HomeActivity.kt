@@ -65,7 +65,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
     private lateinit var accessToken: String
     private lateinit var refreshToken: String
     var state = 0
-    private var ticketVisitedFlag = mutableListOf<TicketVisitedFlag>()
 
     private var lastBackPressedTime = 0L
     var nfcAdapter: NfcAdapter? = null
@@ -79,6 +78,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         _binding = ActivityHomeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // NFC
         val handler = Handler(Looper.myLooper()!!)
         val anim: Animation = AnimationUtils.loadAnimation(this, R.anim.nfc_btn_effect)
 
@@ -93,7 +93,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         }
 
         if (nfcAdapter == null) {
-            Toast.makeText(this, "NFC 사용이 불가능한 기종입니다", Toast.LENGTH_SHORT)
+            Toast.makeText(this, "NFC 사용이 불가능한 기종입니다", Toast.LENGTH_SHORT).show()
         }
 
         binding.nfcBtn.setOnClickListener {
@@ -171,8 +171,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         CoroutineScope(Dispatchers.IO).launch {
             accessToken = dataStore.getAccessToken().toString()
             refreshToken = dataStore.getRefreshToken().toString()
-//            dataStore.deleteAllTicketVisitedJson()
-            ticketVisitedFlag = dataStore.getTicketVisitedJson().toMutableList()
         }
 
         val text = "Add+\nSmart ticket"
@@ -239,9 +237,9 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                     Glide.with(this@HomeActivity)
                         .asBitmap()
                         .load(viewModel.ticketList.value!![position].eventBackgroundImageUrl)
-                        .apply(multiOptions)
-//                        .diskCacheStrategy(DiskCacheStrategy.NONE)
-//                        .skipMemoryCache(true)
+//                        .apply(multiOptions)
+                        .diskCacheStrategy(DiskCacheStrategy.NONE)
+                        .skipMemoryCache(true)
                         .dontAnimate()
                         .into(object : SimpleTarget<Bitmap>() {
                             override fun onResourceReady(
@@ -258,9 +256,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
 
     override fun onResume() {
         super.onResume()
-        Log.d("lifecycle","onResume")
         CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
-            ticketVisitedFlag = dataStore.getTicketVisitedJson().toMutableList()
             viewModel.getUsersTicket()
         }
         val pendingIntent = PendingIntent.getActivity(
@@ -271,6 +267,24 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         )
         nfcAdapter?.enableForegroundDispatch(this, pendingIntent, null, null)
 
+        if (viewModel.ticketList.value != null && viewModel.ticketList.value!!.isNotEmpty()) {
+            binding.ticketVP.currentItem = 0;
+            Glide.with(this@HomeActivity)
+                .asBitmap()
+                .load(viewModel.ticketList.value!![0].eventBackgroundImageUrl)
+//                        .apply(multiOptions)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
+                .dontAnimate()
+                .into(object : SimpleTarget<Bitmap>() {
+                    override fun onResourceReady(
+                        resource: Bitmap,
+                        transition: Transition<in Bitmap>?
+                    ) {
+                        binding.bgImg.setImageBitmap(resource)
+                    }
+                })
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -294,7 +308,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
             val record = recs[i]
             if (Arrays.equals(record.type, NdefRecord.RTD_TEXT)) {
                 var string = byteArrayToStringWithNDEF(record.payload)
-                Log.d("nfc tagging msg", string)
                 if (string.startsWith("stamp:")) {
                     getStampId(string)
                 } else if (string.startsWith("event:")) {
@@ -332,13 +345,6 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                     val body = ticketResponse.body()!!
                     if (body.isNew) {
                         viewModel.getUsersTicket()
-                        ticketVisitedFlag.addAll(dataStore.getTicketVisitedJson())
-
-                        val obj = TicketVisitedFlag(body.ticketId, true)
-                        ticketVisitedFlag.add(obj)
-                        Log.d("check testList", ticketVisitedFlag.toString())
-
-                        dataStore.saveTicketVisitedJson(ticketVisitedFlag)
 
                     } else {
                         withContext(Dispatchers.Main) {
@@ -375,7 +381,7 @@ class HomeActivity : AppCompatActivity(), DataSelection {
                     async { stampService.postStamp(accessToken, refreshToken, requestBody) }
                 val stampResponse = stampDeferred.await()
                 if (stampResponse.isSuccessful) {
-                    Log.d("stampResponse success", stampResponse.body().toString())
+
                 } else {
                     Log.d("ticketResponse fail", stampResponse.errorBody()?.string().toString())
                 }
@@ -406,29 +412,12 @@ class HomeActivity : AppCompatActivity(), DataSelection {
         eventId: Int,
         ticketId: Int
     ) {
-        val flag = ticketVisitedFlag.filter { it.ticketId == ticketId }
         val intent = Intent(this, WebviewActivity::class.java)
         intent.putExtra("url", url)
         intent.putExtra("eventId", eventId)
         intent.putExtra("ticketId", ticketId)
         intent.putExtra("isNewVisited",true)
         startActivity(intent)
-//        if (flag.isEmpty()) {
-//            intent.putExtra("isNewVisited", false)
-//            startActivity(intent)
-//        } else {
-//            intent.putExtra("isNewVisited", flag[0].isNewVisited)
-//            CoroutineScope(Dispatchers.IO).launch(exceptionHandler) {
-//                val list = mutableListOf<TicketVisitedFlag>()
-//                list.addAll(dataStore.getTicketVisitedJson())
-//                val index = list.withIndex().first { it.value.ticketId == ticketId }.index
-//                list[index].isNewVisited = false
-//                dataStore.saveTicketVisitedJson(list)
-//                withContext(Dispatchers.Main) {
-//                    startActivity(intent)
-//                }
-//            }
-//        }
     }
 
     private fun animatedBtn(handler: Handler, thread: Thread) {

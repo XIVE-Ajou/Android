@@ -42,7 +42,6 @@ class TicketViewModel : ViewModel() {
     get() = _hasTicket
 
     private val exceptionHandler = CoroutineExceptionHandler { _, exception ->
-        Log.d("error find exceptionHandler","")
         isError.value = true
     }
     init {
@@ -72,21 +71,17 @@ class TicketViewModel : ViewModel() {
         viewModelScope.launch(exceptionHandler) {
             accessToken = dataStore.getAccessToken().toString()
             refreshToken = dataStore.getRefreshToken().toString()
-            Log.d("error find token check","$accessToken $refreshToken")
             val ticketListDeferred =
                 async { ticketService.getAllTickets(accessToken!!, refreshToken!!) }
             val ticketListResponse = ticketListDeferred.await()
 
             if (ticketListResponse.isSuccessful) {
-                Log.d("user all ticket",ticketListResponse.body().toString())
                 if (ticketListResponse.body()?.data!!.isEmpty()) {
-                    Log.d("error find no ticket","")
                     _hasTicket.value = false
                 }
                 else {
                     _type.postValue("update")
                     val purchasedTicketList = ticketListResponse.body()?.data!!.filter { it.isPurchase }
-                    Log.d("purchased Ticket","${_hasTicket.value}   $purchasedTicketList")
                     if (purchasedTicketList.isEmpty()) _hasTicket.value = false
                     else _hasTicket.value = true
 //                    else if(_hasTicket.value != true && purchasedTicketList.isNotEmpty()) _hasTicket.value = true
